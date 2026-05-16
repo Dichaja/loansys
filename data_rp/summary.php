@@ -7,6 +7,7 @@ require_once('../data_files/page_settings.php');
 
 check_sess(); //check user loggin
 
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -68,151 +69,114 @@ check_sess(); //check user loggin
     </div>
      
     <div style="margin:15px auto;">
-              <table width="100%" cellspacing="0" cellpadding="5px" class="report_display">
-                <tr>
-                  <td>
+        <table width="100%" cellspacing="0" cellpadding="5px" class="report_display">
+            <tr>
+                <td>
                     <div class="grid-3">
-                      <div>Date</div>
-                      <div>Account</div>
-                      <div>Amount</div>
+                        <div>Date</div>
+                        <div>Account</div>
+                        <div>Amount</div>
                     </div>
-                  </td>
-                  <td>
+                </td>
+                <td>
                     <div class="grid-3">
-                      <div>Date</div>
-                      <div>Account</div>
-                      <div>Amount</div>
+                        <div>Date</div>
+                        <div>Account</div>
+                        <div>Amount</div>
                     </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
+                </td>
+            </tr>
+            <tr>
+                <td><div class="grid-3"><div></div><div></div><div>Cash In</div></div></td>
+                <td><div class="grid-3"><div></div><div></div><div>Cash Out</div></div></td>
+            </tr>
+            <tr>
+                <td>
                     <div class="grid-3">
-                      <div></div>
-                      <div></div>
-                      <div>Cash In</div>
+                        <div></div>
+                        <div>Opening Balance</div>
+                        <div>
+                            <?php
+                            // Opening balance from account_transactions prior to reporting date
+                            $open_bal = 0;
+                            $open_sql = mysqli_query($connect, "SELECT SUM(CASE WHEN trans_type IN ('deposit','loan_payment') THEN amount WHEN trans_type IN ('withdrawal','expense') THEN -amount ELSE 0 END) as bal FROM account_transactions WHERE date < '".mysqli_real_escape_string($connect,$date)."'");
+                            $open_row = mysqli_fetch_assoc($open_sql);
+                            if ($open_row && isset($open_row['bal'])) $open_bal = $open_row['bal'];
+                            echo number_format($open_bal,2);
+                            ?>
+                        </div>
                     </div>
-                  </td>
-                  <td>
-                    <div class="grid-3">
-                      <div></div>
-                      <div></div>
-                      <div>Cash Out</div>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                   <td>
-                   <div class="grid-3">
-                      <div></div>
-                      <div>Opening Balance</div>
-                      <div>
-                  <?php
-                $qry = mysqli_query($connect,"SELECT * FROM loan_payments WHERE date_entry <= '$backDate'");
-                    $totPay=0;
-                    if(mysqli_num_rows($qry)){
-                       while($r = mysqli_fetch_array($qry)){
-                           $totPay += $r['amount_paid'];
-                         } 
-                      }
+                </td>
+                <td><div class="grid-3"><div></div><div></div><div></div></div></td>
+            </tr>
+            <?php
+            // Group accounts under same balance
+            $accounts = [];
+            $acc_sql = mysqli_query($connect, "SELECT id, acc_name, acc_branch, acc_no FROM mop_accounts ORDER BY acc_name");
+            while ($row = mysqli_fetch_assoc($acc_sql)) {
+                $accounts[$row['id']] = $row;
+            }
 
-                    $qry = mysqli_query($connect,"SELECT * FROM expense WHERE entry_date <= '$backDate'  ");
-                     if(mysqli_num_rows($qry)){
-                       while($r = mysqli_fetch_array($qry)){
-                           $totPay -= ($r['amount'] * $r['qty']);
-                         } 
-                      }
-                        echo number_format($totPay);
-                      ?></div>
-                    </div></td>
-                   <td>
-                     <div class="grid-3">
-                      <div></div>
-                      <div></div>
-                      <div></div>
-                    </div>
-                   </td>
-                </tr>
-                <tr>
-                   <td>
-                    <div class="grid-3">
-                      <div></div>
-                      <div>Processing Fees</div>
-                      <div><?php echo number_format(summaryTot($connect,$date,'loan_fees','loan_entries','date_entry')) ?></div>
-                    </div>
-                    <div class="grid-3">
-                      <div></div>
-                      <div>Loan Payments</div>
-                      <div><?php echo number_format(summaryTot($connect,$date,'loan','loan_payments','pay_date')) ?></div>
-                    </div>
-                     </td>
-                     <td>
-                      <?php
-                       $q = "SELECT i.item, SUM(e.amount * e.qty) as 'costs'  FROM expense e, expense_items i WHERE e.expense = i.id AND ";
-                         if($date)
-                           $q .= " entry_date = '".date('Y-m-d',strtotime($date))."' AND ";
-                         $q .= " 1 GROUP BY e.expense";
-                       $sql = mysqli_query($connect,$q);
-                       $totExp=0;
-                       if(mysqli_num_rows($sql)){
-                        while($r = mysqli_fetch_array($sql)){
-                          $totExp += $r['costs'];
-                      ?>
-                     <div class="grid-3">
-                      <div></div>
-                      <div style="text-transform:capitalize;"><?php echo strtolower($r['item']) ?></div>
-                      <div><?php echo number_format($r['costs']) ?></div>
-                    </div>
-                     <?php
-                          }
-                        }
-                      ?>
-                   </td>
-                </tr>
-                
-                <tr style="font-weight:bold;">
-                   <td>
-                     <div class="grid-3">
-                      <div>Total</div>
-                      <div></div>
-                      <div>
-                        <?php
-                          echo number_format((summaryTot($connect,$date,'loan_fees','loan_entries','date_entry')+summaryTot($connect,$date,'loan','loan_payments','pay_date')));
-                        ?>
-                      </div>
-                    </div>
-                   </td>
-                   <td>
-                     <div class="grid-3">
-                      <div></div>
-                      <div></div>
-                      <div><?php echo number_format($totExp) ?></div>
-                    </div>
-                   </td>
-                </tr>
-                 <tr style="font-weight:bold;">
-                   <td>
-                     <div class="grid-3">
-                      <div></div>
-                      <div></div>
-                      <div></div>
-                    </div>
-                   </td>
-                   <td>
-                     <div class="grid-3">
-                      <div></div>
-                      <div>Closing Balance</div>
-                      <div>
-                        <?php
-                          $cb = (summaryTot($connect,$date,'loan_fees','loan_entries','date_entry')+summaryTot($connect,$date,'loan','loan_payments','pay_date'));
-                          echo number_format(($cb + $totPay) - $totExp);
-                        ?>
-                      </div>
-                    </div>
-                   </td>
-                </tr>
-              </table>
-            </div>
+            // Cash In: loan payments, client savings, account_transactions deposits
+            $cash_in = [];
+            $loan_sql = mysqli_query($connect, "SELECT pay_date, accTo, amount_paid FROM loan_payments WHERE pay_date = '".mysqli_real_escape_string($connect,$date)."'");
+            while ($row = mysqli_fetch_assoc($loan_sql)) {
+              $acc = isset($accounts[$row['accTo']]) ? $accounts[$row['accTo']]['acc_name'] : 'Unknown';
+              $cash_in[] = ['date'=>$row['pay_date'], 'account'=>$acc, 'amount'=>$row['amount_paid'], 'type'=>'Loan Payment'];
+            }
+            $savings_sql = mysqli_query($connect, "SELECT depo_date, acc_to, amount_depo FROM client_savings WHERE depo_date = '".mysqli_real_escape_string($connect,$date)."'");
+            while ($row = mysqli_fetch_assoc($savings_sql)) {
+              $acc = isset($accounts[$row['acc_to']]) ? $accounts[$row['acc_to']]['acc_name'] : 'Unknown';
+              $cash_in[] = ['date'=>$row['depo_date'], 'account'=>$acc, 'amount'=>$row['amount_depo'], 'type'=>'Savings Deposit'];
+            }
+            $acct_tx_sql = mysqli_query($connect, "SELECT date, acc_to, amount, trans_type FROM account_transactions WHERE date = '".mysqli_real_escape_string($connect,$date)."' AND trans_type = 'deposit'");
+            while ($row = mysqli_fetch_assoc($acct_tx_sql)) {
+              $acc = isset($accounts[$row['acc_to']]) ? $accounts[$row['acc_to']]['acc_name'] : 'Unknown';
+              $cash_in[] = ['date'=>$row['date'], 'account'=>$acc, 'amount'=>$row['amount'], 'type'=>'Account Deposit'];
+            }
+
+            // Cash Out: expenses, cash withdrawals, account_transactions withdrawals
+            $cash_out = [];
+            $expense_sql = mysqli_query($connect, "SELECT entry_date, acc_from, amount, qty FROM expense WHERE entry_date = '".mysqli_real_escape_string($connect,$date)."'");
+            while ($row = mysqli_fetch_assoc($expense_sql)) {
+              $acc = isset($accounts[$row['acc_from']]) ? $accounts[$row['acc_from']]['acc_name'] : 'Unknown';
+              $cash_out[] = ['date'=>$row['entry_date'], 'account'=>$acc, 'amount'=>$row['amount']*$row['qty'], 'type'=>'Expense'];
+            }
+            $withdraw_sql = mysqli_query($connect, "SELECT withdraw_date, acc_to, amount_withdraw FROM client_withdraw WHERE withdraw_date = '".mysqli_real_escape_string($connect,$date)."'");
+            while ($row = mysqli_fetch_assoc($withdraw_sql)) {
+              $acc = isset($accounts[$row['acc_to']]) ? $accounts[$row['acc_to']]['acc_name'] : 'Unknown';
+              $cash_out[] = ['date'=>$row['withdraw_date'], 'account'=>$acc, 'amount'=>$row['amount_withdraw'], 'type'=>'Client Withdrawal'];
+            }
+            $acct_tx_sql_out = mysqli_query($connect, "SELECT date, accFrom, amount, trans_type FROM account_transactions WHERE date = '".mysqli_real_escape_string($connect,$date)."' AND trans_type = 'withdrawal'");
+            while ($row = mysqli_fetch_assoc($acct_tx_sql_out)) {
+              $acc = isset($accounts[$row['accFrom']]) ? $accounts[$row['accFrom']]['acc_name'] : 'Unknown';
+              $cash_out[] = ['date'=>$row['date'], 'account'=>$acc, 'amount'=>$row['amount'], 'type'=>'Account Withdrawal'];
+            }
+
+            // Display Cash In
+            foreach ($cash_in as $ci) {
+              echo '<tr><td><div class="grid-3"><div>'.htmlspecialchars($ci['date']).'</div><div>'.htmlspecialchars($ci['account']).'</div><div>'.number_format($ci['amount'],2).'</div><div style="font-size:11px;color:#888;">'.htmlspecialchars($ci['type']).'</div></div></td><td></td></tr>';
+            }
+            // Display Cash Out
+            foreach ($cash_out as $co) {
+              echo '<tr><td></td><td><div class="grid-3"><div>'.htmlspecialchars($co['date']).'</div><div>'.htmlspecialchars($co['account']).'</div><div>'.number_format($co['amount'],2).'</div><div style="font-size:11px;color:#888;">'.htmlspecialchars($co['type']).'</div></div></td></tr>';
+            }
+
+            // Totals
+            $total_in = array_sum(array_column($cash_in,'amount'));
+            $total_out = array_sum(array_column($cash_out,'amount'));
+            $closing_balance = $open_bal + $total_in - $total_out;
+            ?>
+            <tr style="font-weight:bold;">
+                <td><div class="grid-3"><div>Total</div><div></div><div><?php echo number_format($total_in,2); ?></div></div></td>
+                <td><div class="grid-3"><div></div><div></div><div><?php echo number_format($total_out,2); ?></div></div></td>
+            </tr>
+            <tr style="font-weight:bold;">
+                <td></td>
+                <td><div class="grid-3"><div></div><div>Closing Balance</div><div><?php echo number_format($closing_balance,2); ?></div></div></td>
+            </tr>
+        </table>
+    </div>
         </div>
       </div>
 

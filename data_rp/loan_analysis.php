@@ -4,7 +4,7 @@ error_reporting(E_ALL ^ E_NOTICE);
 require("../xsert/connect.php");
 require_once('../data_files/sys_function.php');
 require_once('../data_files/page_settings.php');
-
+error_reporting(0);
 check_sess(); //check user loggin
 
 function return_monthly_loans($c,$month,$year){

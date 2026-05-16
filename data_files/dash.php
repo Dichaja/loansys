@@ -5,7 +5,7 @@ require_once('sys_function.php');
 require_once('page_settings.php');
 
 check_sess(); //check user loggin
-
+error_reporting(0);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -243,6 +243,7 @@ function seperator(index){
            <div class="main-sidebar col-lg-9">
             <!-- Dashboard Wrapper -->
 <div class="dash-wrap">
+
          <div class="welcome-seg seg">
            <header class="card__header">
              <img src="../img_file/male.jpg" class="card_img" />
@@ -399,8 +400,67 @@ function seperator(index){
                     }
                  ?>
                </div>
+               
        </div>
-    </div>
+    </div><div class="seg" style="display: block;text-align:center;font-weight: bold;font-size:14px;margin: 5px auto;color:#555;border-bottom:solid 1px #ccc;">
+<div>
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin: 24px 0;">
+    <!-- New Defaulters -->
+    <a href="../data_rp/loan_activity.php?defaulters=1" style="text-decoration:none;">
+      <div style="background:#fff3f3;border-radius:8px;padding:18px;text-align:center;box-shadow:0 2px 8px #eee;">
+        <div style="font-size:18px;color:#d9534f;font-weight:bold;">New Defaulters</div>
+        <div style="font-size:32px;color:#d9534f;font-weight:bold;">
+          <?php
+            $defaulters = mysqli_query($connect, "SELECT l.client, CONCAT(c.first_name,' ',c.last_name) as name FROM loan_entries l JOIN clients c ON l.client=c.id WHERE l.status='03' AND l.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) GROUP BY l.client LIMIT 3");
+            $defaulter_count = mysqli_num_rows($defaulters);
+            echo $defaulter_count;
+          ?>
+        </div>
+        <div style="font-size:13px;color:#555;">Last Week</div>
+        <div style="margin-top:10px;">
+          <?php
+            if($defaulter_count > 0){
+              while($row = mysqli_fetch_assoc($defaulters)){
+                echo '<a href="../data_rp/loan_activity.php?client_id='.$row['client'].'" style="color:#d9534f;font-size:15px;display:block;text-decoration:underline;margin:2px 0;">'.$row['name'].'</a>';
+              }
+            }else{
+              echo '<span style="color:#888;font-size:14px;">No new defaulters</span>';
+            }
+          ?>
+        </div>
+      </div>
+    </a>
+    <!-- Recent Loan Disbursements -->
+    <a href="../data_rp/loan_activity.php?recent_loans=1" style="text-decoration:none;">
+      <div style="background:#e7f7ff;border-radius:8px;padding:18px;text-align:center;box-shadow:0 2px 8px #eee;">
+        <div style="font-size:18px;color:#337ab7;font-weight:bold;">Recent Loans</div>
+        <div style="font-size:32px;color:#337ab7;font-weight:bold;">
+          <?php
+            $recent_loans = mysqli_query($connect, "SELECT COUNT(*) as cnt FROM loan_entries WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)");
+            $loan_row = mysqli_fetch_assoc($recent_loans);
+            echo $loan_row['cnt'];
+          ?>
+        </div>
+        <div style="font-size:13px;color:#555;">Last 30 days</div>
+      </div>
+    </a>
+    <!-- Recent Payments -->
+    <a href="../data_rp/loan_activity.php?recent_payments=1" style="text-decoration:none;">
+      <div style="background:#f3fff3;border-radius:8px;padding:18px;text-align:center;box-shadow:0 2px 8px #eee;">
+        <div style="font-size:18px;color:#5cb85c;font-weight:bold;">Recent Payments</div>
+        <div style="font-size:32px;color:#5cb85c;font-weight:bold;">
+          <?php
+            $recent_payments = mysqli_query($connect, "SELECT COUNT(*) as cnt FROM loan_payments WHERE pay_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)");
+            $pay_row = mysqli_fetch_assoc($recent_payments);
+            echo $pay_row['cnt'];
+          ?>
+        </div>
+        <div style="font-size:13px;color:#555;">Last 30 days</div>
+      </div>
+    </a>
+  </div>
+</div>
+       </div>
      </div> <!-- End -->
         </div>
     <?php

@@ -1,7 +1,7 @@
 <?php
 session_start();
 require("../xsert/connect.php");
-
+error_reporting(0);
 if(!isset($_SESSION['sess_usr'])){
   ?>
    <script type="text/javascript">

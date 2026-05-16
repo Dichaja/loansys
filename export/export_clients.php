@@ -3,7 +3,7 @@ session_start();
 error_reporting(E_ALL ^ E_NOTICE);
 require_once('../xsert/connect.php');
 //custom function to filter
-
+error_reporting(0);
 function filterData(&$str){
 	 $str = preg_replace("/\t/","\\t", $str);
 	 $str = preg_replace("/\r?\n/", "\\n", $str);
@@ -32,7 +32,7 @@ $qry = "SELECT * FROM clients c, branches b ";
                  $qry .= " CONCAT(c.first_name,' ',c.last_name) LIKE  '%$client%' AND ";
              }
          if($address!='')
-                $qry .= " c.residence = '".$address."' AND ";
+                $qry .= " c.residance = '".$address."' AND ";
             if($month!='')
                 $qry .= " c.monthname(date_created) = '".$month."' AND ";
              if($gender!='')

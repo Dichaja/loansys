@@ -2,7 +2,7 @@
 session_start();
 error_reporting(E_ALL ^ E_NOTICE);
 date_default_timezone_set('Africa/Nairobi'); 
-
+error_reporting(0);
 function return_usr($c,$usr){
 
   $sql = mysqli_query($c,"SELECT * FROM user_log WHERE id='$usr' ");
@@ -27,7 +27,7 @@ function po_address($c){
   return $add;
 }
 
-function return_period($start,$p) {
+/* function return_period($start,$p) {
 
   $current = time();
   $loan_date_val = strtotime($start);
@@ -51,6 +51,33 @@ function return_period($start,$p) {
     }
 
  return $status; 
+}*/
+
+function return_period($start, $p) {
+
+    $current = time();
+    $loan_date_val = strtotime($start);
+
+    $diff = abs($current - $loan_date_val);
+
+    // Total days difference
+    $total_days = floor($diff / (60 * 60 * 24));
+
+    $years  = floor($total_days / 365);
+    $months = floor($total_days / 30);
+    $weeks  = floor($total_days / 7);
+
+    if ($p == 'year') {
+        return $years;
+    } elseif ($p == 'month') {
+        return $months;
+    } elseif ($p == 'week') {
+        return $weeks;   // ✅ 7-day weeks
+    } elseif ($p == 'day') {
+        return $total_days;
+    } else {
+        return $years;
+    }
 }
 
 function date_set_back($date, $days){ //return duration between months
@@ -79,43 +106,50 @@ function elaspe_period($start,$end, $p){
   $end_date = strtotime($end);
   
  // if($current >= $loan_date_val){    
-    $diff = abs($current - $end_date);    
-    $years = floor($diff / (365*60*60*24));
-    $months = floor(($diff - $years * 365*60*60*24) / (30*60*60*24));
-    $days = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24)/ (60*60*24));      
-    
-    if($p=='year'){
-      $status=$years;
-    }
-    if($p=='month'){
-      $status=($years*12)+$months;
-    }else if($p=='day'){
-      $status=(30*$months)+$days;
-    }else{
-      $status=$years;
-    }
+    $diff = abs($current - $end_date);
+     // Total days difference
+    $total_days = floor($diff / (60 * 60 * 24));    
+    $years  = floor($total_days / 365);
+    $months = floor($total_days / 30);
+    $weeks  = floor($total_days / 7);
 
- return $status;
+    if ($p == 'year') {
+        return $years;
+    } elseif ($p == 'month') {
+        return $months;
+    } elseif ($p == 'week') {
+        return $weeks; 
+    } elseif ($p == 'day') {
+        return $total_days;
+    } else {
+        return $years;
+    }
 }
 
 function status_period($start,$p,$s){
-  
+
   $current = time();
   $loan_date = strtotime($start);
-  
- // if($current >= $loan_date_val){ 
-    $diff = abs($current - $loan_date);    
-    $years = floor($diff / (365*60*60*24));
-    $months = floor(($diff - $years * 365*60*60*24) / (30*60*60*24));
-    $days = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24)/ (60*60*24));      
-    
-    if($p=='month'){
-      $status=($years*12)+$months;
-    }else if($p=='day'){
-      $status=($months*30)+$days;
-    }else{
-      $status=$years;
-    }
+
+  $diff = abs($current - $loan_date);
+
+  $years  = floor($diff / (365*60*60*24));
+  $months = floor(($diff - $years * 365*60*60*24) / (30*60*60*24));
+  $days   = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24)/ (60*60*24));
+
+  if($p=='month'){
+      $status = ($years * 12) + $months;
+
+  }else if($p=='week'){
+      $status = floor($days / 7);  // FIXED
+
+  }else if($p=='day'){
+      $status = ($months * 30) + $days;
+
+  }else{
+      $status = $years;
+  }
+
   return $status;
 }
 
@@ -169,7 +203,7 @@ function add_months($months, DateTime $dateObject)
     }
 }
 
-function endCycle($d1, $period_count, $d){
+/* function endCycle($d1, $period_count, $d){
 
         if($d=='day'){
 
@@ -192,6 +226,39 @@ function endCycle($d1, $period_count, $d){
           
       }
   return $dateReturned;
+}*/
+
+function endCycle($d1, $period_count, $d) {
+
+    $date = new DateTime($d1);
+
+    switch ($d) {
+
+        case 'day':
+            $interval = new DateInterval('P' . $period_count . 'D');
+            break;
+
+        case 'week':
+            $interval = new DateInterval('P' . $period_count . 'W');
+            break;
+
+        case 'month':
+            $interval = new DateInterval('P' . $period_count . 'M');
+            break;
+
+        case 'year':
+            $interval = new DateInterval('P' . $period_count . 'Y');
+            break;
+
+        default:
+            // fallback to days if invalid input
+            $interval = new DateInterval('P' . $period_count . 'D');
+            break;
+    }
+
+    $date->add($interval);
+
+    return $date->format('d-m-Y');
 }
 
 function interest_paid($c,$l){
@@ -323,7 +390,7 @@ if($status=='00'){
                 $bal=$loan;
               } 
               $acc_int += $interest;    
-    }
+    } 
   }
   if($d=='month'){
             $sql=mysqli_query($c,"SELECT * FROM loan_payments WHERE loan='$id' AND pay_date >= '".date('Y-m-d',strtotime($final))."' AND pay_date < '".date('Y-m-d',strtotime($loop_date))."'  ");
@@ -428,7 +495,7 @@ $row = mysqli_fetch_array($qry);
       $period = status_period(date_set_back($date_entry, 1),$duration,'');
       
 
-      if(($r['period'] - $period) < 0 && ($r['period'] - $period) >= -7)
+      if(($r['period'] - $period) < 0 ) //&& ($r['period'] - $period) >= -7)
             $acc_pmt_bal = $loan_principal - $loan_payments;
           else
             $acc_pmt_bal = ($period * $pmt) - $loan_payments;
@@ -462,7 +529,7 @@ $row = mysqli_fetch_array($qry);
       }
    }
 }
-
+ 
 function loan_performance($connect,$status,$month,$year){
 
   $total = 0;

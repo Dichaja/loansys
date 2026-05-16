@@ -2,7 +2,7 @@
 session_start();
 
 error_reporting(E_ALL ^ E_NOTICE);
-
+error_reporting(0);
 require_once("xsert/connect.php");
 ?>
 <!DOCTYPE html>
@@ -114,7 +114,7 @@ if (usr) {
     <div class="login">
       <div class="login-screen">
                 <div class="app-title">
-          <h1><img src="img_file/logo.PNG" width="220" height="140"><br>
+          <h1><img src="img_file/logo.png" width="220" height="140"><br>
           Login</h1>
         </div>
         <div class="login-form">

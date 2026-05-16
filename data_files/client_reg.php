@@ -6,7 +6,7 @@ require_once('../data_files/sys_function.php');
 require_once('../data_files/page_settings.php');
 
 check_sess(); //check user loggin
-
+error_reporting(0);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -17,14 +17,15 @@ check_sess(); //check user loggin
    <title><?php echo sys_tab_hdr() ?></title>
 
 <script type="text/javascript">
-
+document.addEventListener('DOMContentLoaded', function() {
+    var uniqueId = 'MEM'+Math.floor(10000 + Math.random() * 90000)
+    document.getElementById('member_id').value = uniqueId;
+    });
 </script>
 
 </head>
 <body>
 <?php
-
-
 
 if($_POST['first_name']){
 
@@ -65,7 +66,8 @@ define("FILEREPOSITORY",'profile/');
   }else{
 
     //insert query
-    $inst_query = "INSERT INTO clients VALUES ('$id','".ucfirst(strtolower($_POST['first_name']))."','".ucfirst(strtolower($_POST['last_name']))."','".$_POST['contacts']."','".$_POST['email']."','".$_POST['residence']."','".$_POST['occupy']."','".$_POST['gender']."','".$_POST['city']."','".date("Y-m-d H:i:s")."','".date("Y-m-d H:i:s")."','$dir','".$_POST['branch_details']."','01','".$_POST['member_id']."') ";
+    $group_id = isset($_POST['group_id']) ? $_POST['group_id'] : '';
+    $inst_query = "INSERT INTO clients VALUES ('$id','".ucfirst(strtolower($_POST['first_name']))."','".ucfirst(strtolower($_POST['last_name']))."','".$_POST['contacts']."','".$_POST['email']."','".$_POST['residence']."','".$_POST['occupy']."','".$_POST['gender']."','".$_POST['city']."','".date("Y-m-d H:i:s")."','".date("Y-m-d H:i:s")."','$dir','".$_POST['branch_details']."','01','".$_POST['member_id']."','$group_id') ";
 
     $inst = mysqli_query($connect, $inst_query);
         
@@ -97,9 +99,10 @@ define("FILEREPOSITORY",'profile/');
              <?php if($_GET){ include('action_msg.php'); } ?>
               <div class="form_header">New Member</div>
                 <form method="post" name="form" id="client_reg" method="post" enctype="multipart/form-data" >
+                 
                       <div class="form-group">
                               <div class="label">Member Id</div>
-                              <input type="text" name="member_id" class="text-input" autocomplete="off" />
+                              <input type="text" name="member_id" class="text-input" autocomplete="off" id="member_id"/>
                      </div>
                      <div class="form-group">
                        <div style="display:grid; grid-template-columns: repeat(2, 1fr);gap:10px;">
@@ -140,8 +143,8 @@ define("FILEREPOSITORY",'profile/');
                            <div class="label">City</div>
                            <input type="text" name="city" class="text-input" />
                        </div>
-                          <div class="form-group">
-                           <div class="label">Branch</div>
+                          <div class="form-group" required>
+                             <div class="label">Branch</div>
                              <select name="branch_details" class="text-input">
                                <option value="00010" selected="">Select</option>
                                <?php
@@ -154,8 +157,22 @@ define("FILEREPOSITORY",'profile/');
                                    }
                                ?>
                              </select>
-                       </div>
-                       <div class="form-group">
+                          </div>
+                        <div class="form-group">
+                          <div class="label">Group</div>
+                            <select name="group_id" class="text-input" required>
+                             <option value="" selected>Select Group</option>
+                              <?php
+                                $gsql = mysqli_query($connect, "SELECT id, group_name FROM `groups` ORDER BY group_name ASC");
+                                  if(mysqli_num_rows($gsql)){
+                                     while($g = mysqli_fetch_assoc($gsql)){
+                                       echo '<option value="'.$g['id'].'">'.htmlspecialchars($g['group_name']).'</option>';
+                                     }
+                                  }
+                                ?>
+                           </select>
+                        </div>
+                       <!--<div class="form-group">
                         <div class="label">Photo</div>
                           <div class="file-wrapper">
                             <div class="upload-btn-wrapper">
@@ -174,7 +191,7 @@ define("FILEREPOSITORY",'profile/');
                            <input type="file" name="img_file" id="img_file" value="" />
                            </div>
                          </div>
-                        </div>
+                        </div>-->
                         <div class="form-group">
                           <button type="submit" name="btnSubmit" class="button-input">Submit</button>
                         </div>

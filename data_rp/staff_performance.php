@@ -4,7 +4,7 @@ error_reporting(E_ALL ^ E_NOTICE);
 require("../xsert/connect.php");
 require_once('../data_files/sys_function.php');
 require_once('../data_files/page_settings.php');
-
+error_reporting(0);
 check_sess(); //check user loggin
 
 ?>
@@ -187,7 +187,7 @@ if($_POST['search']){
 $start = 0;
 $limit = 40;
 
-$qry = "SELECT s.id, s.first_name, s.last_name, s.contacts, s.gender, s.email, s.residance, b.branch_name, j.job_title, e.id as 'loan_id', s.status FROM staff s LEFT JOIN branches b ON s.branch_id = b.id LEFT JOIN staff_job j ON j.id = s.job LEFT JOIN loan_entries e ON s.id=e.loan_officer AND ";
+$qry = "SELECT s.id, s.first_name, s.last_name, s.contacts, s.gender, s.email, s.residence, b.branch_name, j.job_title, e.id as 'loan_id', s.status FROM staff s LEFT JOIN branches b ON s.branch_id = b.id LEFT JOIN staff_job j ON j.id = s.job LEFT JOIN loan_entries e ON s.id=e.loan_officer AND ";
       if($staff_id)
         $qry .= " s.id = '$staff_id' AND ";
        else if($staff)
@@ -290,7 +290,7 @@ $qry = "SELECT s.id, s.first_name, s.last_name, s.contacts, s.gender, s.email, s
               ?>
                <tr>
                   <td><?php echo $count ?></td>
-                  <td><?php echo $r['first_name'].' '.$r['last_name'] ?></td>
+                  <td><a href="loan_officer_profile.php?officer_id=<?php echo $r['id']; ?>" style="color:#145FA7;font-weight:bold;" target="_blank"><?php echo $r['first_name'].' '.$r['last_name'] ?></a></td>
                   <td><?php echo $r['gender'] ?></td>
                   <td><?php echo $r['contacts'] ?></td>
                   <td><?php echo $branch_init ?></td>

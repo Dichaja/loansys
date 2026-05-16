@@ -6,7 +6,7 @@ require_once('../data_files/sys_function.php');
 require_once('../data_files/page_settings.php');
 
 check_sess(); //check user loggin
- 
+ error_reporting(0);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -176,7 +176,7 @@ if(index[1]=='statement'){
       })
   }
   if(index[1]=='view'){
-
+ 
      $.ajax({
         type:"POST",
         url:"../data_files/data_src.php",
@@ -561,7 +561,7 @@ $(document).on('change','select[name="mop[]"]',function(){
            'returnMop': val
          },
          success:function(d){
-          if(selectText=='Cash'){
+          if(selectText=='Savings Balance (Withdraw)'){
              $('#accTo_'+split[1]).html(`<option value="${val}">${selectText}</option>`)
           }else{
            $('#accTo_'+split[1]).html(d);
@@ -616,6 +616,7 @@ if($_POST['post_search']){
   $date = $_POST['date'];
   $date2 = $_POST['date2'];
   $branch = $_POST['branch_details'];
+  $officer = $_POST['officer_details'];
 }
 
 if($_GET){
@@ -631,6 +632,7 @@ if($_GET){
       $limit=$_GET['limit']; 
       $branch = $_GET['branch']; 
       $loan_id = $_GET['loan'];
+      $officer = $_GET['officer'];
 } 
 
 if($_POST['edit_loan']){
@@ -645,7 +647,7 @@ if($_POST['edit_loan']){
   $update = mysqli_query($connect,"UPDATE loan_entries SET loan_amount='$loan',interest='$interest',period='$period',duration='$duration',date_entry='".date("Y-m-d",strtotime($date))."' WHERE id='$id' ");
   if(mysqli_affected_rows($connect)){
     echo '<script type="text/javascript">
-       location.replace("loan_activity.php?action_msg=success&page='.$page.'&limit='.$limit.'&client='.$client.'&client2='.$client2.'&month='.$month.'&year='.$year.'&pay_status='.$pay_status.'&date='.$date.'");
+       location.replace("loan_activity.php?action_msg=success&page='.$page.'&limit='.$limit.'&client='.$client.'&client2='.$client2.'&month='.$month.'&year='.$year.'&pay_status='.$pay_status.'&date='.$date.'&officer='.$officer.'");
      </script>';
   }else{    
     echo '<script type="text/javascript">
@@ -698,10 +700,10 @@ if($page)
 else
   $start = 0;                             //if no page var is given, set start to 0
    
-$qry = "SELECT c.id, CONCAT(c.first_name,' ',c.last_name) as 'client_names', c.contacts, c.email, l.id as 'loan_id', l.loan_amount, l.interest, l.duration, l.period, l.date_entry, l.status, b.branch_name, c.data_id, l.loan_fees, CONCAT(s.first_name,' ',s.last_name) AS 'loan_officer' FROM clients c, loan_entries l LEFT JOIN staff s ON s.id = l.loan_officer, branches b ";
+$qry = "SELECT c.id, CONCAT(c.first_name,' ',c.last_name) as 'client_names', c.contacts, c.email, l.id as 'loan_id', l.loan_amount, l.interest, l.duration, l.period, l.date_entry, l.status, b.branch_name, c.data_id, l.loan_fees, CONCAT(s.first_name,' ',s.last_name) AS 'loan_officer', g.group_name FROM clients c, loan_entries l LEFT JOIN staff s ON s.id = l.loan_officer, branches b, `groups` g ";
     if(!$_SESSION['general_user'])
        $qry .= ", user_log u ";
-         $qry .= " WHERE c.id = l.client AND c.branch_id = b.id AND ";
+         $qry .= " WHERE c.id = l.client AND c.branch_id = b.id AND c.group_id = g.id AND ";
           if(!$_SESSION['general_user'])
              $qry .= " u.user_branch = c.branch_id AND ";
             if($client_id)
@@ -710,6 +712,8 @@ $qry = "SELECT c.id, CONCAT(c.first_name,' ',c.last_name) as 'client_names', c.c
                $qry .= " CONCAT(c.first_name,' ',c.last_name) LIKE  '%".$client_src."%' AND ";              
           if($month != '')
                $qry .= " monthname(l.date_entry) = '".$month."' AND ";
+            if($officer != '')
+               $qry .= " l.loan_officer = '".$officer."' AND ";
             if($date !='' && $date2 !='')
                       $qry .= " l.date_entry BETWEEN '".date('Y-m-d',strtotime($date))."' AND '".date('Y-m-d',strtotime($date2))."' AND ";
               if($date != '' && $date2=='')
@@ -728,7 +732,7 @@ $qry = "SELECT c.id, CONCAT(c.first_name,' ',c.last_name) as 'client_names', c.c
                   $qry_tot .= $qry . ' 1';
               $qry .= " 1 ORDER BY l.date_entry DESC ";
               ($limit!='') ? $qry .= "LIMIT $start, $limit " : $limit = mysqli_num_rows(mysqli_query($connect,$qry_tot)) ;
-
+   
    $query = mysqli_query($connect,$qry2);//total loans registered
      $total_pages = mysqli_num_rows(mysqli_query($connect,$qry_tot));//
      $total_disbursh = mysqli_num_rows($query);
@@ -821,14 +825,13 @@ $qry = "SELECT c.id, CONCAT(c.first_name,' ',c.last_name) as 'client_names', c.c
         </span>
     </div>
 </div>
- 
   <table align="center" cellpadding="5" cellspacing="0" width="100%" class="report_display">                
      <tr>
       <td>No</td>
       <td>Issue Date</td>
       <td>Id</td>
       <td>Client</td>
-      <td>Branch</td> 
+      <td>Group</td> 
       <td>Loan Officer</td>     
       <td>Status (Days)</td>
       <td align="center">Loan</td>
@@ -836,8 +839,9 @@ $qry = "SELECT c.id, CONCAT(c.first_name,' ',c.last_name) as 'client_names', c.c
       <td align="center">Payments</td>
       <td align="right">Balance</td>
       <td></td>
+      <td></td>
      </tr>
-     <?php
+    <?php
 
        if(mysqli_num_rows($result)){
 
@@ -870,7 +874,7 @@ $qry = "SELECT c.id, CONCAT(c.first_name,' ',c.last_name) as 'client_names', c.c
             mysqli_query($connect,"UPDATE loan_entries SET status='00' WHERE id = '".$rw['loan_id']."' ");
             $status_period=0;
           }else{
-            $status_period = ($rw[8]-return_period($rw[9],$rw[7]));//returns period remain for loan
+            $status_period = ($rw['period']-return_period($rw[9],$rw['duration']));//returns period remain for loan
            }
           
         ?>
@@ -879,32 +883,35 @@ $qry = "SELECT c.id, CONCAT(c.first_name,' ',c.last_name) as 'client_names', c.c
          <td><?php echo date("d-m-Y",strtotime($rw[9])) ?></td>
          <td><?php echo $rw['data_id'] ?></td>
          <td style="text-transform:capitalize;"><?php echo strtolower($rw[1]) ?></td>  
-         <td><?php echo $branch_init ?></td>
+         <td><?php echo $rw['group_name'] ?></td>
          <td><?php echo $rw['loan_officer'] ?></td>       
          <td><?php 
               if($status_period < 0 ){ 
                 echo '<span style="color:#F00">'.$status_period.'</span>';
-                  if($status_period >= -7)
+                  /*if($status_period >= -7)
                     mysqli_query($connect,"UPDATE loan_entries SET status='02' WHERE id = '".$rw['loan_id']."' ");
-                  else
+                  else*/
                     extend_loan($connect,$rw['loan_id']);
-                    //mysqli_query($connect,"UPDATE loan_entries SET status='02' WHERE id = '".$rw['loan_id']."' ");
+                    mysqli_query($connect,"UPDATE loan_entries SET status='02' WHERE id = '".$rw['loan_id']."' ");
+                    echo 'Hhh';
                }else{
                   echo '<span>'.$status_period.'</span>';
-            } ?></td>
+            } echo $rw['duration'] .'(s)'; ?></td>
          <td align="right"><?php echo number_format($rw[5]) ?></td>
          <td align="right"><?php echo number_format($rw['loan_fees']) ?></td>
          <td align="right"><?php echo number_format(loan_status($connect,$rw['loan_id'],'payments')); $total_pay += loan_status($connect,$rw['loan_id'],'payments')  ?></td>
          <td align="right">
              <?php
-                                  $total_loan_balance += loan_status($connect,$rw['loan_id'],$status);
-                                  echo number_format(loan_status($connect,$rw['loan_id'],$status));
+                $total_loan_balance += loan_status($connect,$rw['loan_id'],$status);
+                echo number_format(loan_status($connect,$rw['loan_id'],$status));
             ?></td>
       <td>
         <input type="hidden" name="clientId" id="postClient_<?php echo $count ?>" value="<?php echo $rw[0] ?>" />
+        <button class="pay-loan-btn" data-loan-id="<?php echo $rw['loan_id'] ?>" data-client-id="<?php echo $rw['id'] ?>" style="background:#28a745;color:#fff;border:none;border-radius:4px;padding:6px 18px;min-width:48px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:bold;font-size:1em;" title="Pay Loan">Pay</button></td>
+       <td>
         <select name="select_action" class="text-input" id="action_<?php echo $count ?>" style="width:80px;">
              <option value="" selected="selected">Action</option>
-             <option value="<?php echo $rw[4] ?>_loan" >Pay Loan</option>
+             <option value="<?php echo $rw[4] ?>_loan" >Loan Activity</option>
              <option value="<?php echo $rw[4] ?>_amortize">Preview Amortization</option>
              <option value="<?php echo $rw[4] ?>_statement">View Statement</option>
              <?php if(!$rw['amount_paid']){
@@ -913,9 +920,9 @@ $qry = "SELECT c.id, CONCAT(c.first_name,' ',c.last_name) as 'client_names', c.c
                <option value="<?php echo $rw[4] ?>_edit" id="edit2_<?php echo $count?>">Edit Loan</option>
                <option value="<?php echo $rw[4] ?>_delete" id="delete_<?php echo $count?>">Delete</option>
               <?php } ?>
-          </select>
-         </td>
-       </tr>
+          </select>  
+      </td>
+    </tr>
         <?php
         if($rw['status']!='03')
             $total_loan += $rw[5];          
@@ -929,6 +936,7 @@ $qry = "SELECT c.id, CONCAT(c.first_name,' ',c.last_name) as 'client_names', c.c
            <td align="right"><?php echo number_format($total_pay) ?></td>
            <td align="right"><?php echo number_format($total_loan_balance) ?></td>
            <td></td>
+          <td></td>
          </tr>
         <?php
        }else{
@@ -942,7 +950,7 @@ $qry = "SELECT c.id, CONCAT(c.first_name,' ',c.last_name) as 'client_names', c.c
         }
       ?>
        <tr>
-          <td colspan="12">
+          <td colspan="13">
            <div style="width:100%;text-align:right;font-size:14px;">
                      <span style="padding:5px;">Page <?php echo $page ?> <b>of</b> <?php echo $last_page ?></span>
                      <span style="background:#ddd;padding:5px;border-radius:5px;margin-left:10px;font-size:12px;"><?php echo "<a href=\"$target_page?page=$next&limit=$limit&month=$month&year=$year&pay_status=$pay_status&date=$date&date2=$date2&branch=$branch\">Next</a>"; ?></span>
@@ -958,6 +966,51 @@ $qry = "SELECT c.id, CONCAT(c.first_name,' ',c.last_name) as 'client_names', c.c
     </table>
   </div>
 </div>
+<!-- Modal for payment form -->
+        <div class="modal" id="payLoanModal" style="display:none;align-items:center;justify-content:center;z-index:1000;">
+          <div class="modal-content modal-small-size" id="payLoanModalContent">
+            <span class="close" style="float:right;cursor:pointer;font-size:1.5em;" onclick="document.getElementById('payLoanModal').style.display='none'">&times;</span>
+            <div class="form_header">Loan Payment(s)</div>
+            <form method="post"id="payLoanForm">
+              <input type="hidden" name="loan" value="" id="post_loan" />
+              <input type="hidden" name="loan_client" value="" id="post_client" />
+              <div class="form-group">
+                <label>Pay Date</label>
+                 <input type="text" name="pay_date[]" id="datetimepicker" class="text-input" autocomplete="off" value="<?php echo date('Y-m-d') ?>" />
+              </div>
+              <div class="form-group">
+                <label>Amount</label>
+                <input type="text" name="pay_loan[]" class="text-input" required id="pay_1"/>
+              </div>
+              <div class="form-group">
+                <label>Mode of Pay</label>
+                <select name="mop[]" id="mop_1" class="text-input">
+                 <option value="" selected="selected">Select</option>
+                  <?php 
+                    $qry = mysqli_query($connect,"SELECT * FROM mop");
+                     while($r = mysqli_fetch_array($qry)){
+                       ?><option value="<?php echo $r['id'] ?>"><?php echo $r['name']; ?></option><?php
+                     }
+                  ?>
+                  <option value="04">Savings Balance (Withdraw)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                 <label>Account To</label>
+                <select name="accTo[]" id="accTo_1" class="text-input">
+                 <option value="" selected="selected">Select</option>
+                </select>
+              </div>
+              <div class="form-group">
+                  <label>Account From</label>
+                <input type="text" name="accNo[]" class="text-input" id="accNo_1" value="" />
+              </div>
+              <div class="form-group">
+                <button type="submit" class="button-input" style="background:#28a745;color:#fff;">Submit Payment</button>
+              </div>
+            </form>
+   </div>
+</div>
 
 <!-- Search Form -->
 <div id="search-form">
@@ -968,6 +1021,9 @@ $qry = "SELECT c.id, CONCAT(c.first_name,' ',c.last_name) as 'client_names', c.c
      <input type="text" name="date2" placeholder="Date To" class="text-input" id="picker" autocomplete="off" />
     </div>
     <div class="form_element">
+     <input type="text" name="year" placeholder="Year" class="text-input" id="year" autocomplete="off" />
+    </div>
+    <!--<div class="form_element">
       <select name="month" id="month" class="text-input">
         <option selected="selected" value="">Search Month</option>
          <?php 
@@ -977,12 +1033,26 @@ $qry = "SELECT c.id, CONCAT(c.first_name,' ',c.last_name) as 'client_names', c.c
           }
         ?>
       </select>
-    </div>
-    <div class="form_element">
-     <input type="text" name="year" placeholder="Year" class="text-input" id="year" autocomplete="off" />
-    </div>
+    </div>-->
     <?php
       if($_SESSION['general_user']) { ?>
+<div class="form_element">
+  <select name="officer_details" class="text-input">
+    <option value="" selected="selected">Search Loan Officer</option>
+     <?php
+       $sql = mysqli_query($connect,"SELECT s.id, s.first_name, s.last_name FROM staff s, staff_job j WHERE j.job_title='Loans Officer' AND s.job=j.id ");
+         if(mysqli_num_rows($sql)){
+            while($r = mysqli_fetch_array($sql)){
+              if($r[1])
+               echo '<option value="'.$r['id'].'">'.$r['first_name'].' '.$r['last_name'].'</option>';
+             }
+           }
+         ?>
+       </select>
+</div>
+<?php } 
+
+ if($_SESSION['general_user']) { ?>
 <div class="form_element">
   <select name="branch_details" class="text-input">
     <option value="" selected="selected">Search Branch</option>
@@ -1011,5 +1081,81 @@ $qry = "SELECT c.id, CONCAT(c.first_name,' ',c.last_name) as 'client_names', c.c
       echo footer_sec(); //footer section
     ?>
   </div>
+
+  <script>
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.pay-loan-btn').forEach(function(btn) {
+          btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var loanId = this.getAttribute('data-loan-id');
+            var clientId = this.getAttribute('data-client-id');
+            var modal = document.getElementById('payLoanModal');
+            document.getElementById('post_loan').value = loanId;
+            document.getElementById('post_client').value = clientId;
+            if(modal) modal.style.display = 'flex';
+          });
+        });
+
+   var form = document.getElementById('payLoanForm');
+   if (!form) return;
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    // Prevent double submission
+    if (form.dataset.submitted === "true") return;
+    form.dataset.submitted = "true";
+
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
+
+    // Basic validation
+    const amount = form.querySelector('#pay_1');
+    const mop = form.querySelector('#mop_1');
+    const accTo = form.querySelector('#accTo_1');
+
+    let msg = "";
+
+    if (!amount.value.trim()) msg += "Enter a valid amount.\n";
+    if (!mop.value) msg += "Select mode of pay.\n";
+    if (!accTo.value) msg += "Select account to.\n";
+
+    if (msg !== "") {
+      alert(msg);
+      form.dataset.submitted = "false";
+      if (submitBtn) submitBtn.disabled = false;
+      return;
+    }
+
+    const formData = new FormData(form);
+
+    fetch('../data_files/post_data.php', {
+      method: 'POST',
+      body: formData
+    })
+    .then(res => res.text())
+    .then(data => {
+      if (data.toLowerCase().includes('success')) {
+        alert("Payment submitted!");
+        document.getElementById('payLoanModal').style.display = 'none';
+        location.reload();
+      } else {
+        alert("Payment failed: " + data);
+        form.dataset.submitted = "false";
+        if (submitBtn) submitBtn.disabled = false;
+      }
+
+    })
+    .catch(() => {
+      alert("Payment failed.");
+      form.dataset.submitted = "false";
+      if (submitBtn) submitBtn.disabled = false;
+    });
+
+  });
+
+      });
+  </script>
   </body>
 </html>

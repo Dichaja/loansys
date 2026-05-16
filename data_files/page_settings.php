@@ -3,15 +3,15 @@ session_start();
 error_reporting(E_ALL ^ E_NOTICE);
 require_once("../xsert/connect.php");
 date_default_timezone_set('Africa/Nairobi');
-
+error_reporting(0);
 /*
 Builds up page header and structual layout
 */
 
-if($_POST['user']){
 
- $usr = $_POST['user'];
- $pwd = $_POST['pass'];
+if(isset($_POST['user'])){
+  $usr = isset($_POST['user']) ? $_POST['user'] : '';
+  $pwd = isset($_POST['pass']) ? $_POST['pass'] : '';
 
 $sql  = mysqli_query($connect,"SELECT * FROM user_log WHERE usr_name='$usr' AND pass_wrd = md5('$pwd') ");
 
@@ -20,15 +20,15 @@ $sql  = mysqli_query($connect,"SELECT * FROM user_log WHERE usr_name='$usr' AND 
   
    //if(hash('crc32',$r[0])==$_GET['user_id']){
 
-     $_SESSION['sess_user'] = $r[2];
-     $_SESSION['session_id'] = $r[0];
-     $_SESSION['user_type'] = $r[4];
-     $_SESSION['user_branch'] = $r[8];
+    $_SESSION['sess_user'] = isset($r[2]) ? $r[2] : '';
+    $_SESSION['session_id'] = isset($r[0]) ? $r[0] : '';
+    $_SESSION['user_type'] = isset($r[4]) ? $r[4] : '';
+    $_SESSION['user_branch'] = isset($r[8]) ? $r[8] : '';
 
       //update last login in status
-        mysqli_query($connect,"UPDATE user_log SET log_date='".date('Y-m-d H:i')."' WHERE id='".$_SESSION['session_id']."' ");
-        if($_SESSION['user_type']=='admin' OR $_SESSION['user_type']=='director')
-           $_SESSION['general_user'] = $_SESSION['user_type'];
+          mysqli_query($connect,"UPDATE user_log SET log_date='".date('Y-m-d H:i')."' WHERE id='". (isset($_SESSION['session_id']) ? $_SESSION['session_id'] : '') ."' ");
+          if(isset($_SESSION['user_type']) && ($_SESSION['user_type']=='admin' || $_SESSION['user_type']=='director'))
+            $_SESSION['general_user'] = $_SESSION['user_type'];
       //}
     }
     echo 'success';
@@ -38,8 +38,7 @@ $sql  = mysqli_query($connect,"SELECT * FROM user_log WHERE usr_name='$usr' AND 
 }
 
 function check_sess(){
-
-  if(!$_SESSION['user_type'] AND !$_SESSION['sess_usr']){
+  if((!isset($_SESSION['user_type']) || !$_SESSION['user_type']) && (!isset($_SESSION['sess_usr']) || !$_SESSION['sess_usr'])){
      ?>
      <script type="text/javascript">
       location.replace('../index.php?sess_status=01');
@@ -54,8 +53,9 @@ function sys_tab_hdr(){
 
 
 function tp_hdr(){ // returns main header wrapper + logo
+  $user_type = isset($_SESSION['user_type']) ? $_SESSION['user_type'] : '';
 ?>
-<input type="hidden" name="user_type" id="user_type" value="<?php echo $_SESSION['user_type'] ?>" >
+<input type="hidden" name="user_type" id="user_type" value="<?php echo $user_type ?>" >
 <!-- The Modal -->
 <div id="myModal_2" class="modal">
   <!-- Modal content -->
