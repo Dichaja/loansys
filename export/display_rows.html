@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Hide Excess Table Rows</title>
+ <script type="text/javascript" src="../data_scripts/jquery-2.1.1.min.js"></script>
+
+ <style type="text/css">
+#myTable tr {
+  display: none;
+}
+
+#myTable tr:nth-child(-n+5),
+#myTable tr:last-child,
+#myTable tr:nth-child(6) {
+  display: table-row;
+}
+
+#myTable tr:nth-child(6) td {
+  border-top: 1px solid #000;
+  border-bottom: 1px solid #000;
+}
+
+</style>
+
+<script type="text/javascript">
+$(document).ready(function() {
+  // Show the first 5 rows, a row with dots, the last row, and the "View All" button by default
+  $('#myTable tr:lt(5), #myTable tr:nth-child(6), #myTable tr:last, #viewAll').show();
+
+  // Handle "View All" button click
+  $('#viewAll').click(function() {
+    $('#myTable tr').show();
+    $('#viewAll').hide();
+  });
+});
+</script>
+
+</head>
+<body>
+<table id="myTable">
+  <tr>
+    <td>1</td>
+  </tr>
+  <tr>
+    <td>2</td>
+  </tr>
+  <tr>
+    <td>3</td>
+  </tr>
+  <tr>
+    <td>4</td>
+  </tr>
+  <tr>
+    <td>5</td>
+  </tr>
+  <tr>
+    <td>6</td>
+  </tr>
+  <tr>
+    <td>7</td>
+  </tr>
+  <tr>
+    <td>8</td>
+  </tr>
+  <tr>
+    <td>9</td>
+  </tr>
+  <tr>
+    <td>10</td>
+  </tr>
+  <tr>
+    <td>11</td>
+  </tr>
+</table>
+
+<button id="viewAll">View All</button>
+
+</body>
+</html>

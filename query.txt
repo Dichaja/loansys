@@ -1,0 +1,13 @@
+SELECT c.client_names, l.loan_amount, l.duration, l.period, p.amount_paid, p.pay_date, l.status, l.overdue_status FROM clients c, loan_entries l, loan_payments p WHERE c.id=l.client AND l.id = p.loan AND c.id='274929'
+
+non defaulter 247
+defaulter 106
+
+Alituha Michael - 8323394 - 24/11/2017 
+Nyakaisiki Nuriati - 897634b - 23-11-2017
+Kahunde Mary Gorret - 594906 - 28/11/2017
+
+november = 214,125,600
+
+nina jasbert - desperate for you
+

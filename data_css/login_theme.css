@@ -1,0 +1,60 @@
+@charset "utf-8";
+/* CSS Document */
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #273c75;
+  padding: 50px;
+}
+
+.login {
+  margin: 20px auto;
+  width: 300px;
+}
+
+.login-screen {
+  background-color: #FFF;
+  padding: 20px;
+  border-radius: 5px;
+}
+
+.app-title {
+  text-align: center;
+  color: #777;
+}
+
+.login-form {
+  text-align: center;
+}
+
+.control-group {
+  margin-bottom: 10px;
+}
+
+.styled-button-5 {
+  background-color: #273c75;
+  color: #fff;
+  font-family: 'Poppins',sans-serif;
+  font-size: 14px;
+  line-height: 30px;
+  border-radius: 20px;
+  -webkit-border-radius: 20px;
+  -moz-border-radius: 20px;
+  border: 0;
+  text-shadow: #C17C3A 0 -1px 0;
+  width: 250px;
+  height: auto;
+  cursor: pointer;
+}
+
+input {
+  text-align: center;
+  background-color: #ECF0F1;
+  border: 2px solid transparent;
+  border-radius: 3px;
+  font-size: 16px;
+  font-weight: 200;
+  padding: 10px 0;
+  width: 250px;
+  transition: border .5s;
+}
