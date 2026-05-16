@@ -4,7 +4,7 @@ error_reporting(E_ALL ^ E_NOTICE);
 require("../xsert/connect.php");
 require_once('../data_files/sys_function.php');
 require_once('../data_files/page_settings.php');
-error_reporting(0);
+
 check_sess(); //check user loggin
 
 ?>
@@ -68,15 +68,15 @@ if(split_val[1]=='edit'){
 <body>
 <?php
 
- if($_POST['names'] && $_POST['address'] && $_POST['contact'] && $_POST['website'] && $_POST['email'] && $_POST['location']){
-  
+ if($_POST['submit']){
+
     $names = mysqli_real_escape_string($connect,$_POST['names']);
     $email = mysqli_real_escape_string($connect,$_POST['email']);
     $address = mysqli_real_escape_string($connect,$_POST['address']);
     $contact = mysqli_real_escape_string($connect,$_POST['contact']);
     $website = mysqli_real_escape_string($connect,$_POST['website']);
     $loc = mysqli_real_escape_string($connect,$_POST['location']);
-   
+
     //define constant
   define("FILEREPOSITORY",'../img_file/');
 
@@ -107,10 +107,7 @@ if(split_val[1]=='edit'){
 }
 
 
-  // Initialize $dir variable before using it
-  $dir = isset($dir) ? $dir : '';
-  
-  $inst = mysqli_query($connect,"INSERT INTO header_tpl (id, names, address, contact, website, email, location, date_created, photo_dir) VALUES('".rand(10000,99999)."','$names','$address','$contact','$website','$email','$loc','".date('Y-m-d')."','$dir')");
+  $inst = mysqli_query($connect,"INSERT INTO header_tpl VALUES('".rand(10000,99999)."','$names','$address','$contact','$website','$email','$loc','".date('Y-m-d')."','$dir') ");
 
     if($inst){
       $status='success';
@@ -120,7 +117,7 @@ if(split_val[1]=='edit'){
     }
  ?>
     <script type="text/javascript">
-     location.replace("header_settings.php?action_msg=<?php echo $status ?>&response=<?php echo $response ?>");
+     location.replace("header_settings.php?action_msg=<?php echo $status ?>");
    </script>
     <?php 
    
@@ -173,7 +170,7 @@ $photo_dir = $_POST['photo_dir'];
  if($dir)
   $photo_dir = $dir;
    
-   $upd = mysqli_query($connect,"UPDATE header_tpl SET names='$names', address='$address', contact='$contact', website='$website', email='$email', location='$loc', photo_dir='$photo_dir'");
+   $upd = mysqli_query($connect,"UPDATE header_tpl SET company_details='$names', address='$address', contacts='$contact', website='$website', email='$email', location='$loc', photo='$photo_dir' ");
    if($upd){
      $status='success';
    }else{

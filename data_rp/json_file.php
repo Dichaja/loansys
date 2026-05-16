@@ -1,7 +1,7 @@
 <?php
 require("../xsert/connect.php");
 require("../data_files/sys_function.php");
-error_reporting(0);
+
 error_reporting(E_ALL ^ E_NOTICE);
 
 header('Content-Type: application/json');

@@ -4,7 +4,6 @@ error_reporting(E_ALL ^ E_NOTICE);
 require("../xsert/connect.php");
 require_once('../data_files/sys_function.php');
 require_once('../data_files/page_settings.php');
-error_reporting(0);
 
 check_sess(); //check user loggin
 
@@ -105,7 +104,7 @@ function del_expense(id,index){
 <body>
 
  <?php
-    if(isset($_POST['submit'])){
+    if($_POST['submit']){
 
       $expense = mysqli_real_escape_string($connect,$_POST['expense']);
       $desc = mysqli_real_escape_string($connect,$_POST['desc']);
@@ -257,7 +256,7 @@ function del_expense(id,index){
               <td class="bottom_line">
                <?php
                 $q = " SELECT * FROM expense_items i WHERE category='$rw[0]' AND ";
-                   $q .= " 1 ORDER BY i.item, i.date_entry ASC ";
+                   $q .= " 1 ORDER BY i.item, i.reg_date ASC ";
                 $sql = mysqli_query($connect,$q);
 
                    if(mysqli_num_rows($sql)){

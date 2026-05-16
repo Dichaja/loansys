@@ -1,84 +1,11 @@
 <?php
+
 session_start();
 error_reporting(E_ALL ^ E_NOTICE);
 
 require_once('../xsert/connect.php');
 require_once('../data_files/sys_function.php');
 date_default_timezone_set('Africa/Nairobi'); 
-error_reporting(0);
-
-// Loan qualification check for client_list.php
-if(isset($_POST['action']) && $_POST['action'] === 'check_loan_qualification') {
-  $client_id = isset($_POST['client_id']) ? $_POST['client_id'] : '';
-  $loan_amount = isset($_POST['loan_amount']) ? floatval($_POST['loan_amount']) : 0;
-  // Get savings balance
-  $savings_qry = mysqli_query($connect, "SELECT SUM(amount_depo) as balance FROM client_savings WHERE client='".$client_id."'");
-  $savings_row = mysqli_fetch_array($savings_qry);
-  $savings_balance = $savings_row['balance'] ? $savings_row['balance'] : 0;
-  // Get loan limit and percentage
-  $limit_qry = mysqli_query($connect, "SELECT loan_limit, percentage FROM loan_limit ORDER BY loan_limit DESC LIMIT 1");
-  $limit_row = mysqli_fetch_array($limit_qry);
-  $loan_limit = $limit_row['loan_limit'] ? $limit_row['loan_limit'] : 0;
-  $percentage = $limit_row['percentage'] ? $limit_row['percentage'] : 0;
-  // Required savings = loan_amount * percentage / 100
-  $required_savings = ($loan_amount * $percentage) / 100;
-  if($savings_balance == 0){
-    echo 'no_savings';
-  }else if($savings_balance >= $required_savings && $loan_amount <= $loan_limit) {
-    echo 'qualified';
-  } else {
-    echo 'not_qualified';
-  }
-  exit;
-}
-
-// Handle savings entry from modal form
-if(isset($_POST['action']) && $_POST['action'] === 'add_savings_entry') {
-  $id = isset($_POST['id']) ? $_POST['id'] : '';
-  $client = isset($_POST['client']) ? $_POST['client'] : '';
-  $amount_depo = isset($_POST['amount_depo']) ? $_POST['amount_depo'] : 0;
-  $depo_date = isset($_POST['depo_date']) ? $_POST['depo_date'] : '';
-  $mode_of_pay = isset($_POST['mode_of_pay']) ? $_POST['mode_of_pay'] : '';
-  $account_to = isset($_POST['account_to']) ? $_POST['account_to'] : '';
-  $account_from = isset($_POST['account_from']) ? $_POST['account_from'] : '';
-  $date_entry = date('Y-m-d H:i:s');
-  $inst = mysqli_query($connect, "INSERT INTO client_savings (id, client, amount_depo,  mop, acc_to, acc_from, depo_date, date_entry) VALUES ('$id', '$client', '$amount_depo', '$mode_of_pay', '$account_to', '$account_from','$depo_date', '$date_entry')");
-  if($inst) {
-    echo 'success';
-  } else {
-    echo 'err'.mysqli_error($connect);
-  }
-  exit;
-}
-
-// Handle savings entry from modal form
-if(isset($_POST['action']) && $_POST['action'] === 'add_withdraw_entry') {
-  $id = isset($_POST['id']) ? $_POST['id'] : '';
-  $client = isset($_POST['client']) ? $_POST['client'] : '';
-  $amount_withdraw = isset($_POST['amount_withdraw']) ? floatval($_POST['amount_withdraw']) : 0;
-  $withdraw_date = isset($_POST['withdraw_date']) ? $_POST['withdraw_date'] : '';
-  $mode_of_pay = isset($_POST['mode_of_pay']) ? $_POST['mode_of_pay'] : '';
-  $account_to = isset($_POST['account_to']) ? $_POST['account_to'] : '';
-  $account_from = isset($_POST['account_from']) ? $_POST['account_from'] : '';
-  $date_entry = date('Y-m-d H:i:s');
-  // Check available balance
-  $savings_qry = mysqli_query($connect, "SELECT SUM(amount_depo) as balance FROM client_savings WHERE client='".$client."'");
-  $withdraw_qry = mysqli_query($connect, "SELECT SUM(amount_withdraw) as withdraw FROM client_withdraw WHERE client='".$client."'");
-  $savings_row = mysqli_fetch_array($savings_qry);
-  $withdraw_row = mysqli_fetch_array($withdraw_qry);
-  $available_balance = ($savings_row['balance'] ? $savings_row['balance'] : 0) - ($withdraw_row['withdraw'] ? $withdraw_row['withdraw'] : 0);
-  if($amount_withdraw > $available_balance) {
-    echo 'exceeds_balance';
-    exit;
-  }
-  $inst = mysqli_query($connect, "INSERT INTO client_withdraw (id, client, amount_withdraw,  mop, acc_to, acc_from, withdraw_date, date_entry, remarks) VALUES ('$id', '$client', '$amount_withdraw', '$mode_of_pay', '$account_to', '$account_from','$withdraw_date', '$date_entry','Withdraw')");
-  if($inst) {
-    echo 'success';
-  } else {
-    echo 'err'.mysqli_error($connect);
-  }
-  exit;
-}
 
 
 if($_POST['ac_id']){
@@ -95,7 +22,7 @@ if($_POST['ac_id']){
       $order_no = $_POST['order_cost_expenses'];
       $currency = $_POST['currency'];
       $cur_val = $_POST['cur_val'];
-      $acc_from = $_POST['accFrom'];
+      $acc_to = $_POST['acc_to'];
       $acc_to_no = $_POST['acc_to_no'];
       $cur_index = $_POST['cur_select'];
       $cost = $_POST['cost'];
@@ -144,7 +71,7 @@ if($_POST['member_id']){
 
   //define constant
   define("FILEREPOSITORY",'profile/');
-  $base_url = '../img_file/';
+
       $id= $_POST['member_id'];
 
 
@@ -157,20 +84,16 @@ if($_POST['member_id']){
          
          //get the extension of the file
          $base = basename($photo_name);
-         $extension = strtolower(pathinfo($photo_name, PATHINFO_EXTENSION));
-         $allowed_extension = array("jpg","png","jpeg","PNG","JPEG","JPG","webp","WEBP","gif","GIF","bmp","BMP","svg","SVG","tiff","TIFF");
+         $extension = substr($base, strlen($base)-4, strlen($base));
+         $allowed_extension = array(".jpg",".png",".jpeg",".PNG");
 
   if(in_array($extension,$allowed_extension)){
-          
-            $folder = $base_url . FILEREPOSITORY . date("Y-m-d");
-              if (!is_dir($folder)) {
-                mkdir($folder, 0755, true);
-              }
+             if(!is_dir(FILEREPOSITORY.date("Y-m-d"))){
+                  mkdir(FILEREPOSITORY.date("Y-m-d"));
+                }
 
-              $new_filename = $id.'_'.time().'.'.$extension;
-              $dir = date("Y-m-d") . '/' . $new_filename; //returns directory for uploading image  
-              move_uploaded_file($photo_upd, $folder.'/'.$new_filename);
-             
+             $dir = date("Y-m-d").'/'.$id.'_'.strtotime(date('Y-m-d H:i:s')).$extension; //returns directory for uploading image
+             move_uploaded_file($photo_upd,FILEREPOSITORY.date("Y-m-d").'/'.$id.'_'.strtotime(date('Y-m-d H:i:s')).$extension); //uploads file to respective directory
   }else{
         $response = 'Un-Supported Image File Format. <a href="" id="status_id">Try Again.!</a>';
     }
@@ -291,7 +214,7 @@ if($_POST['edit_staff']){
       }
     echo $status.$err;
 }
- 
+
 if($_POST['pay_loan']){
 
   $client_loan=$_POST['loan_client'];
@@ -301,27 +224,16 @@ if($_POST['pay_loan']){
   $loan_amount = $_POST['pay_loan'];
   $accTo = $_POST['accTo'];
   $accNo = $_POST['accNo'];
-  $mop = $_POST['mop'];
   $index=0;
 
+  /*if(mysqli_num_rows(mysqli_query($connect,"SELECT * FROM loan_payments WHERE loan = '$loan_id' AND pay_date='$date'")) && !$allow_dup){
+      $status = 'duplicate';
+  }else*/
   foreach($loan_amount as $key=>$val){
     if($val){
       $receipt = date('m-').rand(100,999).rand(100,999).'/'.date('y');
       $id=date("d").rand(10000,99999);
-      // If payment is via savings balance, record withdrawal
-      if(isset($mop[$index]) && $mop[$index] == '04') {
-        $withdraw_id = 'WD'.date('YmdHis').rand(100,999);
-        $withdraw_sql = mysqli_query($connect, "INSERT INTO client_withdraw (id, client, amount_withdraw, mop, acc_to, acc_from, withdraw_date, date_entry, remarks) VALUES ('$withdraw_id', '$client_loan', '".str_replace(",", "",$val)."', '01', '".$accTo[$index]."', '".$accNo[$index]."', '".$date[$index]."', '".date('Y-m-d H:i:s')."', 'Loan Payment')");
-         if($withdraw_sql) {
-            $status = 'success_';
-         } else {
-            $status = 'err '.mysqli_error($connect);
-            echo $status;
-            exit;
-         }
-      }
-      
-      $sql = mysqli_query($connect,"INSERT INTO loan_payments VALUES ('$id','".str_replace(",", "",$val)."','".$date[$index]."','".$_SESSION['session_id']."','$client_loan','$loan_id','$receipt','".date('Y-m-d H:i')."','$mop[$index]','','".$accTo[$index]."','".$accNo[$index]."') ");
+      $sql = mysqli_query($connect,"INSERT INTO loan_payments VALUES ('$id','".str_replace(",", "",$val)."','".$date[$index]."','".$_SESSION['session_id']."','$client_loan','$loan_id','$receipt','".date('Y-m-d H:i')."',NULL,'','".$accTo[$index]."','".$accNo[$index]."') ");
           if($sql){
               $status='success_'.$id.'_'.loan_status($connect,$loan_id,'') . '-' . $accTo[$index] . '-' . $accNo[$index];
               if(loan_status($connect,$loan_id,'') <= 0){
@@ -346,7 +258,7 @@ if($_POST['extend_loan']){
   $remark = $_POST['action'];
   $rand = date('d').rand(10000,99999);
 
-    $sql = mysqli_query($connect,"SELECT l.client, l.interest, l.duration, l.loan_officer, g.guarantor, g.gender, g.email, g.residence, g.occupation, g.contacts, s.security, s.value, s.security_type, s.serial_no, s.desc_security FROM loan_entries l, loan_guarantor g, loan_security s WHERE l.id = g.loan AND l.id = s.loan AND l.id = '$loan_id' ");
+    $sql = mysqli_query($connect,"SELECT l.client, l.interest, l.duration, l.loan_officer, g.guarantor, g.gender, g.email, g.residence, g.occupation, g.contacts, s.security, s.value, s.type, s.serial_no, s.desc FROM loan_entries l, loan_guarantor g, loan_security s WHERE l.id = g.loan AND l.id = s.loan AND l.id = '$loan_id' ");
 
     if(mysqli_num_rows($sql)){      
 

@@ -102,6 +102,7 @@ select:focus, input[type="text"]:focus{
     width: 100%; /* Full width */
     height: 100%; /* Full height */
     overflow: scroll; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
     background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
 }
 
@@ -111,32 +112,25 @@ select:focus, input[type="text"]:focus{
     margin: auto;
     padding: 20px;
     border: 1px solid #888;
+    padding-bottom:30px;
+    margin-bottom:10px;
     border-radius:10px;
-    overflow-y: auto;
-    max-height: 90vh;
-    min-height: 100px;
-    width: 100%;
-    box-sizing: border-box;
 }
 
 .modal-large-size{
-  max-width: 900px;
-  width: 90vw;
+  width: 80%;
 }
 
 .modal-medium-size{
-  max-width: 700px;
-  width: 70vw;
+  width: 60%;
 }
 
 .modal-small-size{
-  max-width: 500px;
-  width: 50vw;
+  width: 45%;
 }
 
 .modal-min-size {
-  max-width: 350px;
-  width: 30vw;
+  width: 30%;
 }
 
 .modal-spin-wrap{

@@ -9,10 +9,8 @@
    </li>
    <li class="expand_link on">Members
       <ul>
-         <li><a href="../data_files/group_reg.php">Group Registration</a></li>
          <li><a href="../data_files/client_reg.php" >Add Member</a></li>
-         <li><a href="../data_rp/client_list.php">Member Report</a></li>
-         <li><a href="../data_rp/groups_report.php">Groups Report</a></li>
+         <li><a href="../data_rp/client_list.php">Member List</a></li>
      </ul>
    </li>
    <li class="expand_link on">Expenses
@@ -32,16 +30,14 @@
      </li>
      <li class="expand_link on">Financial Reports
        <ul>
-          <li><a href="../data_files/mop_account.php">Cash Accounts</a></li>
-          <li><a href="../data_rp/savings_report.php">Savings Report</a></li>
-          <li><a href="../data_rp/summary.php">Cash Book Summary</a></li>
+          <li><a href="../data_rp/summary.php">Summary Report</a></li>
           <li><a href="../data_rp/income_statement.php">Income Statement</a></li>
-          <li><a href="../data_rp/cash_account_statement.php">Cash Account Statement</a></li>
        </ul>
      </li>
      <li class="expand_link <?php if($_SESSION['general_user']){ echo 'on'; }else{ echo 'off'; } ?>">Preferences
       <ul>
-        <li><a href="../data_files/branch_reg.php">Branch Settings</a></li>
+         <li><a href="../data_files/mop_account.php">Mode of Payments</a></li>
+         <li><a href="../data_files/branch_reg.php">Branch Settings</a></li>
          <li><a href="../data_files/header_settings.php">Set Notes Header</a></li>
          <li class="<?php if($_SESSION['user_type']=='admin'){ echo 'on'; }else{ echo 'off'; } ?>"><a href="../data_files/add_user.php">Manage Users</a></li>
        </ul>

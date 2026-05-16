@@ -4,9 +4,9 @@ error_reporting(E_ALL ^ E_NOTICE);
 require("../xsert/connect.php");
 require_once('../data_files/sys_function.php');
 require_once('../data_files/page_settings.php');
-error_reporting(0);
+
 check_sess(); //check user loggin
-error_reporting(0);
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -21,27 +21,6 @@ $(document).on('change','select[name="sel_action"]',function(){
 
    var chg_val = $(this).val();
    var split = chg_val.split('_');
-
-
-   if(split[0]=='user'){
-    var modal = $('#myModal').html();
-
-    $.ajax({
-         type: 'POST',
-         url: '../data_files/data_src.php',
-         data: {
-           'add_user': split[1] 
-         },
-         beforeSend:function(){
-          $('#myModal').css({'display':'block','z-index':'6'}).html('<div class="modal-spin-wrap"><div class="modal-img-spin"><img src="../img_file/loading.gif" /></div></div>')
-         },
-          success:function(d){
-               $('#myModal').html(modal);
-                $('.modal-content').toggleClass('modal-min-size')
-                  $('#display').html(d);
-         }
-      })
-   }
 
     if(split[0]=='edit'){
       $.ajax({
@@ -154,7 +133,7 @@ if($_POST['search']){
 $start = 0;
 $limit = 40;
 
-$qry = "SELECT s.id, s.first_name, s.last_name, s.contacts, s.gender, s.email, s.residence, b.branch_name, j.job_title, s.date_joined FROM staff s, branches b, staff_job j WHERE s.branch_id = b.id AND  j.id = s.job AND ";
+$qry = "SELECT s.id, s.first_name, s.last_name, s.contacts, s.gender, s.email, s.residance, b.branch_name, j.job_title, s.reg_date FROM staff s, branches b, staff_job j WHERE s.branch_id = b.id AND  j.id = s.job AND ";
       if($staff_id)
         $qry .= " s.id = '$staff_id' AND ";
        else if($staff)
@@ -165,6 +144,7 @@ $qry = "SELECT s.id, s.first_name, s.last_name, s.contacts, s.gender, s.email, s
               $qry .= " b.id = '$branch' AND ";
           $qry_tot = $qry." 1 ";
         $qry .= " 1 ORDER BY s.first_name, s.last_name ASC LIMIT $start, $limit ";
+
   $sql_tot = mysqli_query($connect,$qry_tot); //return total staff 
 ?>  
    <!-- Main Content Wrapper -->
@@ -184,29 +164,28 @@ $qry = "SELECT s.id, s.first_name, s.last_name, s.contacts, s.gender, s.email, s
         </div>               
         <div class="report_header" style="align-items: center;">
                 <span>Staff Report <?php echo $search ?></span>
-                <div style="text-align: right; display: flex; align-items: center; gap: 16px;">
-                  <!-- Add Staff Button -->
-                  <a href="../data_files/staff_reg.php"><button id="openStaffReg" style="background:#28a745;color:#fff;border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;" title="Add Staff">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#28a745"/><path d="M7 12h10M12 7v10" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
-                  </button></a>
-                  <!-- ...existing header controls... -->
-                  <span style="display:inline-block;text-align: right;font-size: 12px;font-weight: normal;">
-                    <span id="get_report" class="print_layout">Generate PDF</span>
-                    <span class="print_layout"><a href="../export/export_clients.php" style="text-decoration: none; color:#000; ">Export Data</a></span>
-                  </span>
-                  <span id="print_rpt">
-                    <span>Print</span>
-                    <span><img src="../img_file/print-icon.svg" width="20" height="20"></span>
-                  </span>
-                </div>
-              </div>
+                <div style="text-align: right;">
+          <!--Search Wrapper -->
+           <form name="form1" method="post" action="staff_list.php" id="form1">
+            <input type="hidden" name="post_search" value="1" />
+             <div style="width:100%;height:40px;display: grid;grid-template-columns: 2fr 1fr;">
+               <div style="height:40px;border:solid 1px #CCC;background-color:#fff;width:300px;" id="drop_wrapper">
+                  <input type="text" class="search_text" name="name_search" placeholder="Search Staff" id="name_search" autocomplete="off" data-src="staff" />
+                      <img src="../img_file/search.png" id="open_search" data-usr="" width="18px" height="18px" />
+                       <input type="hidden" name="staff_id" value="" id="data_id" />
+                      <div id="drop-box" class="drop_down drop_large_size"></div>
+                   </div> 
+                 <input type="submit" name="search" value="Search" class="button_search">
+              </div>                      
+           </form>
+       </div>
      </div>
   </div>
   <div class="report_wrap">
   <div style="font-size:12px;font-weight: normal;display: grid; grid-template-columns: 1fr 1fr;">
     <span>Entries : <?php echo mysqli_num_rows($sql_tot) ?></span>
     <span style="display: grid; grid-template-columns: 1fr 1fr;">
-              <!--<div style="width:100%;text-align:right;font-size:14px;">
+              <div style="width:100%;text-align:right;font-size:14px;">
                 <span style="display:inline-block;text-align: right;font-size: 12px;font-weight: normal;">
                   <span id="get_report" class="print_layout">Generate PDF</span>
                   <span class="print_layout"><a href="../export/export_clients.php" style="text-decoration: none; color:#000; ">Export Data</a></span>
@@ -226,7 +205,7 @@ $qry = "SELECT s.id, s.first_name, s.last_name, s.contacts, s.gender, s.email, s
                      <span style="background:#ddd;padding:5px;border-radius:5px;margin-left:10px;font-size:12px;"><?php echo "<a href=\"$target_page?page=$prev&limit=$limit&month=$month&year=$year&gender=$gender&branch=$branch&address=$address\">Back</a>"; ?></span>
                      <?php } ?>
                      <span style="background:#ddd;padding:5px;border-radius:5px;margin-left:10px;font-size:12px;"><?php echo "<a href=\"$target_page?page=1&limit=$total_pages&limit=$limit&month=$month&year=$year&gender=$gender&branch=$branch&address=$address\">View All</a>"; ?></span>
-                  </div>-->
+                  </div>
         </span>
     </div>
 </div>
@@ -259,12 +238,11 @@ $qry = "SELECT s.id, s.first_name, s.last_name, s.contacts, s.gender, s.email, s
                   <td><?php echo $r['contacts'] ?></td>
                   <td><?php echo $r['email'] ?></td>
                   <td><?php echo $r['residance'] ?></td>
-                   <td><?php echo date('d/m/y', strtotime($r['date_joined'])) ?></td>
+                   <td><?php echo date('d/m/y', strtotime($r['reg_date'])) ?></td>
                   <td><?php echo $r['branch_name'] ?></td>
                   <td align="right">
                     <select name="sel_action" id="action_<?php echo $count ?>" class="text-input" style="width:80px;">
                        <option value="">Action</option>
-                       <option value="user_<?php echo $r[0] ?>">Make User</option>
                        <option value="edit_<?php echo $r[0] ?>">Edit</option>
                        <option value="delete_<?php echo $r[0] ?>">Delete</option>
                     </select></td>

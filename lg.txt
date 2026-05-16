@@ -1,0 +1,11 @@
+==== Panel ======
+Username: primecom
+Password: 7hIB0gw26n
+
+=== Database =====
+name -> primecom_xsert_loans
+user -> primecom_xsert
+
+psw  -> xsert123
+
+==== End =====

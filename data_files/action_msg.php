@@ -1,6 +1,5 @@
          
 <?php
-error_reporting(0);
   // Returns Action Response Msg after Form Post
 
               if($_GET['action_msg']=="success"){

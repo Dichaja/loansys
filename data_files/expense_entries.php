@@ -4,7 +4,7 @@ error_reporting(E_ALL ^ E_NOTICE);
 require("../xsert/connect.php");
 require_once('../data_files/sys_function.php');
 require_once('../data_files/page_settings.php');
-error_reporting(0);
+
 check_sess(); //check user loggin
 
 ?>
@@ -76,31 +76,6 @@ function return_voucher(index,tab){
         }
    })
 }
-
-$(document).on('change','select[name="mop"]',function(){
-   
-    var val = $(this).val(),
-        id = $(this).attr('id'),
-        split = id.split('_'),
-        selectText = $(this).find('option:selected').text();;
-
-      $.ajax({
-         type: 'POST',
-         url : '../data_files/post_data.php',
-         data:{
-           'returnMop': val
-         },
-         success:function(d){
-          if(selectText=='Savings Balance (Withdraw)'){
-             $('#accTo').html(`<option value="${val}">${selectText}</option>`)
-          }else{
-           $('#accTo').html(d);
-          }
-       }
-    })
-})
-
-
 
 $(document).on('keyup','input[name="expense[]"]',function(){
 
@@ -293,11 +268,11 @@ $(document).on('click','#submit',function(e){
                             ?>
                         </select></div>
                   </div>
-                  <div class="bottom_frm_align">
+                  <div class="bottom_frm_align account_no">
                      <div></div>
-                     <div>Target Account</div>
+                     <div>Account From</div>
                      <div>
-                      <select name="accFrom" id="accTo" class="text-input">
+                      <select name="mop_account" id="mop_account" class="text-input">
                         <option selected="selected" value="">Select</option>
                       </select></div>
                   </div>

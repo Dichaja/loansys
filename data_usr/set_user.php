@@ -2,7 +2,7 @@
 session_start();
 error_reporting(E_ALL ^ E_NOTICE);
 require("../xsert/connect.php");
-error_reporting(0);
+
 if(!isset($_SESSION['sess_usr'])){
   ?>
    <script type="text/javascript">

@@ -1,9 +1,10 @@
 <?php
 require("../xsert/connect.php");
 error_reporting(E_ALL ^ E_NOTICE);
-error_reporting(0);
-if(isset($_POST['edit_client'])){
-	$id = isset($_POST['edit_client']) ? $_POST['edit_client'] : '';
+
+if($_POST['edit_client']){
+
+	$id = $_POST['edit_client'];
 	$sql = mysqli_query($connect,"SELECT * FROM clients WHERE id='$id'");
 	$rw = mysqli_fetch_array($sql);
   
@@ -91,7 +92,7 @@ if($_POST['edit_loan']){
         <div class="label">Specify</div>
         <select name="duration" class="select-input">
           <?php
-            $array = array('day','week','month','year');
+            $array = array('day','month','year');
             foreach($array as $val){
               if($rw[3]==$val){
                 echo '<option value="'.$val.'" selected="selected">'.ucfirst($val).'</option>';

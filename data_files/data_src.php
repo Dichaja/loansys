@@ -3,27 +3,11 @@ session_start();
 error_reporting(E_ALL ^ E_NOTICE);
 require_once('../xsert/connect.php');
 require_once('../data_files/sys_function.php');
-error_reporting(0);
-
-if(isset($_POST['add_savings'])){
-  $client_id = isset($_POST['client_id']) ? intval($_POST['client_id']) : 0;
-  $amount_depo = isset($_POST['amount_depo']) ? floatval($_POST['amount_depo']) : 0;
-  $depo_date = isset($_POST['depo_date']) ? $_POST['depo_date'] : '';
-  $mop = isset($_POST['mode_of_pay']) ? $_POST['mode_of_pay'] : '';
-  $acc_to = isset($_POST['acc_to']) ? $_POST['acc_to'] : '';
-  $acc_from = isset($_POST['acc_from']) ? $_POST['acc_from'] : '';
-  $sql = mysqli_query($connect, "INSERT INTO client_savings (id, client, amount_depo, mop, acc_to, acc_from, depo_date) VALUES ('$client_id', '$amount_depo', '$mop', '$acc_to', '$acc_from', '$depo_date')");
-  if($sql){
-    echo '1';
-  }else{
-    echo '0'.mysqli_error($connect);
-  }
-}
 
 if($_POST['sess_usr']){
  if(isset($_SESSION['sess_usr'])){
-   $old_user = isset($_SESSION['sess_usr']) ? $_SESSION['sess_usr'] : '';
-   $type = isset($_SESSION['sess_type']) ? $_SESSION['sess_type'] : '';
+   $old_user = $_SESSION['sess_usr'];
+   $type = $_SESSION['sess_type'];
  
  //destroys value
     unset($_SESSION['sess_usr']);
@@ -39,25 +23,6 @@ if($_POST['sess_usr']){
     }else{
       
     }
-  }
-}
-
-if(isset($_POST['del_savings'])){
-  $id = $_POST['del_savings'];
-  $del = mysqli_query($connect,"DELETE FROM client_savings WHERE id='$id'");
-  if(mysqli_affected_rows($connect)){
-    echo '1';
-  }else{
-    echo '0';
-  }
-}
-if(isset($_POST['del_withdraw'])){
-  $id = $_POST['del_withdraw'];
-  $del = mysqli_query($connect,"DELETE FROM client_withdraw WHERE id='$id'");
-  if(mysqli_affected_rows($connect)){
-    echo '1';
-  }else{
-    echo '0';
   }
 }
 
@@ -88,44 +53,6 @@ if(isset($_POST['loan_amount'])){
   $fees_val = null;
   $last_fee = 0;
   $last_limit = 0;
-
-  //define constant
-  define("FILEREPOSITORY",'profile/');
-  $base_url = '../img_file/';
-
-
-// --set image attributes for upload
-  if(is_uploaded_file($_FILES['img_file']['tmp_name'])){
-
-         $photo_name = $_FILES['img_file']['name'];
-         $file_type = $_FILES['img_file']['type'];
-         $photo_upd = $_FILES['img_file']['tmp_name'];
-         
-         //get the extension of the file
-         $base = basename($photo_name);
-         $extension = strtolower(pathinfo($photo_name, PATHINFO_EXTENSION));
-         $allowed_extension = array("jpg","png","jpeg","PNG","JPEG","JPG","webp","WEBP","gif","GIF","bmp","BMP","svg","SVG","tiff","TIFF");
-
-  if(in_array($extension,$allowed_extension)){
-          
-            $folder = $base_url . FILEREPOSITORY . date("Y-m-d");
-              if (!is_dir($folder)) {
-                mkdir($folder, 0755, true);
-              }
-
-              $new_filename = $id.'_'.time().'.'.$extension;
-              $dir = date("Y-m-d") . '/' . $new_filename; //returns directory for uploading image  
-              move_uploaded_file($photo_upd, $folder.'/'.$new_filename);
-             
-  }else{
-        $response = 'Un-Supported Image File Format. <a href="" id="status_id">Try Again.!</a>';
-    }
-  //--//  
-}
-
-$photo_dir = $_POST['photo_dir'];
- if($dir)
-  $photo_dir = $dir;
 
   if($staff=='')
       $staff=rand(1000,9999);
@@ -159,9 +86,6 @@ $sql = mysqli_query($connect,"INSERT INTO loan_entries VALUES('$id','$client','$
 
 	if($sql){
 		echo '1_'.$id.'_'.$_POST['client'];
-     //update member photo directory
-     mysqli_query($connect,"UPDATE clients SET  photo_dir = '$photo_dir' WHERE id='$client' ");
-
      mysqli_query($connect,"INSERT INTO staff VALUES('$staff','$staff','$staff_name','','','','','0001','".date('Y-m-d H:i:s')."','','01','','','".$_SESSION['user_branch']."')");
 	}else{
 		echo '0 '.mysqli_error($connect);
@@ -355,7 +279,7 @@ if(isset($_POST['get_loan'])){
  $loan_id = $_POST['get_loan'];
  $search = $_POST['srch_val'];
 
- $sql = mysqli_query($connect,"SELECT CONCAT(c.first_name,' ',c.last_name), l.loan_amount, l.date_entry, l.duration, l.period, c.id, l.interest, l.status, c.data_id, l.id as 'loan_id', l.modify_date, c.photo_dir, g.*, s.* FROM clients c, loan_entries l LEFT JOIN loan_guarantor g ON l.id = g.loan LEFT JOIN loan_security s ON l.id = s.loan WHERE c.id=l.client AND l.id='$loan_id'");
+ $sql = mysqli_query($connect,"SELECT CONCAT(c.first_name,' ',c.last_name), l.loan_amount, l.date_entry, l.duration, l.period, c.id, l.interest, l.status, c.data_id, l.id as 'loan_id', l.modify_date FROM clients c, loan_entries l WHERE c.id=l.client AND l.id='$loan_id'");
  
  $rw = mysqli_fetch_array($sql);
 
@@ -389,61 +313,23 @@ if(isset($_POST['get_loan'])){
    </div>
   
   <form method="post" name="form" id="loans" action="../data_rp/loan_activity.php">
-  <input type="hidden" id="client_loan" name="loan_client" value="<?php echo $rw[5] ?>" />
+    <input type="hidden" id="client_loan" name="loan_client" value="<?php echo $rw[5] ?>" />
     <input type="hidden" name="loan" id="loan_id" value="<?php echo $loan_id ?>" />
-      <div style="display:flex;gap:20px;align-items:flex-start;">
-
-  <!-- Member Photo -->
-  <div>
-    <img src="../img_file/profile/<?php echo $rw['photo_dir']; ?>" 
-         alt="Member Photo"
-         style="width:120px;height:120px;object-fit:cover;border-radius:8px;border:1px solid #ccc;">
-  </div>
-
-  <!-- Member Details -->
-  <div>
-
-    <div style="display:flex;margin:6px 0;">
-      <div style="width:150px;">Member</div>
-      <b><?php echo $rw[0] ?></b>
-    </div>
-
-    <div style="display:flex;margin:6px 0;">
-      <div style="width:150px;">Member ID</div>
-      <b><?php echo $rw['data_id'] ?></b>
-    </div>
-
-    <div style="display:flex;margin:6px 0;">
-      <div style="width:150px;">Loan</div>
-      <b><?php echo number_format($loan) ?></b>
-    </div>
-
-    <div style="display:flex;margin:6px 0;">
-      <div style="width:150px;">Issue Date</div>
-      <b><?php echo date("d-m-Y",strtotime($rw[2])) ?></b>
-    </div>
-
-    <div style="display:flex;margin:6px 0;">
-      <div style="width:150px;">Loan Period</div>
-      <b><?php echo $rw[4]." ".$rw[3]." (s)" ?> at <?php echo $rw[6]."% " ?></b>
-    </div>
-<div style="margin: 18px auto;">
-
-Guarantor : <b><?php echo $rw['guarantor'] ? $rw['guarantor'] : 'N/A' ?></b>
-
-&nbsp;&nbsp;&nbsp;&nbsp;
-
-Contacts : <b><?php echo $rw['contacts'] ? $rw['contacts'] : 'N/A' ?></b>
-<b><?php echo number_format($total_withdrawal,2); ?></b>
-
-&nbsp;&nbsp;&nbsp;&nbsp;
-
-Loan Security : <b><?php echo $rw['security'] ? $rw['security'] : 'N/A' ?></b>
-
-</div>
-  </div>
-
-</div>
+      <div style="display:block;margin:5px 0">
+        <div style="width:200px;float:left;">Member</div> <b><?php echo $rw[0] ?></b> 
+      </div>
+      <div style="display:block;margin:5px 0">
+        <div style="width:200px;float:left;">Member ID</div> <b><?php echo $rw['data_id'] ?></b>
+      </div>
+      <div style="display:block;margin:5px 0">
+        <div style="width:200px;float:left;">Loan</div><b><?php echo number_format($loan) ?></b>
+      </div>
+      <div style="display:block;margin:5px 0">
+        <div style="width:200px;float:left;">Issue Date</div> <b><?php echo date("d-m-Y",strtotime($rw[2])) ?></b>
+      </div>
+      <div style="display:block;margin:5px 0">
+        <div style="width:200px;float:left;">Loan Period</div> <b><?php echo $rw[4]." ".$rw[3]." (s)" ?> at <?php echo $rw[6]."% " ?></b>
+      </div>
       <div style="display:block;margin:5px 0">
        <div style="width:200px;float:left;">Periodic Payment (PMT)</div><b>
            <?php
@@ -479,74 +365,52 @@ Loan Security : <b><?php echo $rw['security'] ? $rw['security'] : 'N/A' ?></b>
   if($rw['status']=='03')
     $period = elaspe_period($rw['date_entry'],$rw['modify_date'], $rw['duration']);
   else
-    $period = return_period(date_set_back($rw[2], 1),$rw['duration']);
+    $period = status_period(date_set_back($rw[2], 1),$rw['duration'],'');
 
   for($i=0; $i <= $period; $i++){
-    $period_start = endCycle($rw[2], $i, $rw['duration']);
-    $period_end = endCycle($rw[2], $i+7, $rw['duration']);
-    $pay_date = '';
-    $pay = 0;
-    $usr = '';
-    $payments = [];
-    if($rw['duration']) {
+     $get_date = endCycle($rw[2], $i, $rw['duration']);
+     $pay_date = '';
+     $pay = 0;
+     $usr = '';
+            
+  if($rw[3]=='day') {
+
       $loan_principal = (($rw['loan_amount'] * ($int/100))) + $rw['loan_amount'];
-      // Get all payments for this client and period
-      $sql = mysqli_query($connect,
-        "SELECT * FROM loan_payments WHERE loan='$loan_id' AND client='".$rw['client']."' AND pay_date >= '".date("Y-m-d",strtotime($period_start))."' AND pay_date < '".date("Y-m-d",strtotime($period_end))."' ORDER BY pay_date ASC"
-      );
-      while($rws = mysqli_fetch_array($sql)){
-        $payments[] = $rws;
-        $pay += $rws['amount_paid'];
-        $loan_payments += $rws['amount_paid'];
-        $total += $rws['amount_paid'];
-        $pay_date = $rws['pay_date'];
-        $usr = $rws['user'];
-      }
+      $sql = mysqli_query($connect,"SELECT * FROM loan_payments WHERE loan='$loan_id' AND pay_date='".date("Y-m-d",strtotime($get_date))."'");
+
+        if(mysqli_num_rows($sql)){
+              while($rws = mysqli_fetch_array($sql)){
+                $pay = $rws['amount_paid'];
+                $loan_payments+=$rws['amount_paid'];
+                $total += $pay;
+                $pay_date = $rws['pay_date'];
+                $usr = $rws['user'];
+              }
+          }
+ 
       $acc_pmt_bal = ($acc_pmt - $loan_payments);
-      $loan_due = $loan_principal-$loan_payments;
-      // If period exceeds loan duration, extend loan
-      if($i > $rw['period']) {
-        extend_loan($connect, $loan_id);
-        break;
-      }
-      if(($rw['period'] - $i) < 0)
-        $acc_pmt_bal = $loan_due;
-      else
-        $acc_pmt += $pmt;
-      $count+=1;
-      // Output all payments for this period
-      if(count($payments) > 0) {
-        foreach($payments as $pmt_row) {
-          ?>
-          <tr>
-            <td><?php echo $count ?></td>
-            <td><?php echo $period_start; ?></td>
-            <td><?php echo return_usr($connect, $pmt_row['user']); ?></td>
-            <td><?php echo date('d-m-y', strtotime($pmt_row['pay_date'])); ?></td>
-            <td align="right"><?php echo number_format($pmt_row['amount_paid']); ?></td>
-            <td align="right"><?php if($acc_pmt_bal<=0){ echo 0; } else { echo number_format($acc_pmt_bal);} ?></td>
-            <td align="right"><?php echo number_format($loan_due); ?></td>
-          </tr>
+        $loan_due = $loan_principal-$loan_payments;
+          if(($rw['period'] - $i) < 0 && ($rw['period'] - $i) >= -7)
+            $acc_pmt_bal = $loan_due;
+          else
+            $acc_pmt += $pmt;
+    $count+=1;
+  ?>
+               <tr>
+                <td><?php echo $count ?></td>
+                <td><?php echo $get_date ?></td>
+                <td><?php if($usr){ echo return_usr($connect,$usr);}else{ echo '-'; } ?></td>
+                <td><?php if($pay_date){ echo date("d-m-y",strtotime($pay_date)); }else{ echo '-'; } ?></td>
+                <td align="right"><?php if($pay!=0){ echo number_format($pay); } else { echo "-"; } ?></td>
+                <td align="right"><?php if($acc_pmt_bal<=0){ echo 0; } else { echo number_format($acc_pmt_bal);} ?></td>
+                <td align="right"><?php echo number_format($loan_due) ?></td>
+              </tr>
           <?php
-        }
-      } else {
-        ?>
-        <tr>
-          <td><?php echo $count ?></td>
-          <td><?php echo $period_start; ?></td>
-          <td>-</td>
-          <td>-</td>
-          <td align="right">-</td>
-          <td align="right"><?php echo number_format($acc_pmt_bal); ?></td>
-          <td align="right"><?php echo number_format($loan_due); ?></td>
-        </tr>
-        <?php
-      }
       if($loan_due<=0)
         $i = $period;  //stops loop where there is no balance;  
     }
-    if($i==0 AND $rw['status']!='03')
-      $period = $period-1; // maintains period count at 30
+      if($i==0 AND $rw['status']!='03')
+       $period = $period-1; // maintains period count at 30
    }
   ?>
           <tr class="pay_data" style="font-weight: bold;">
@@ -647,32 +511,28 @@ if($_POST['get_client']){
     if(mysqli_num_rows($sql)){
 
       $rw = mysqli_fetch_array($sql); // returns client info
-      $photo_dir = $rw['photo_dir'];
-      if(!$rw['photo_dir'])
-        $photo_dir = 'default.png';
+       $photo_dir = $rw['photo_dir'];
+         if(!$rw['photo_dir'])
+          $photo_dir = 'default.png';
       ?>
-      <div style="display:flex;align-items:flex-start;gap:24px;margin:10px 0 18px 0;">
-        <div style="min-width:100px;max-width:100px;text-align:center;">
-          <img src="<?php echo '../data_files/profile/'.$photo_dir ?>" width="100px" height="100px" style="object-fit:cover;border-radius:8px;border:1px solid #ccc;" />
-        </div>
-        <div style="flex:1;">
-          <div style="font-weight: bold;font-size:18px;margin-bottom:4px;">
-            <?php echo $rw[0].' '.$rw[1].'<br><span style=\"font-weight:normal;\">'.$rw['data_id'].'</span>'?>
-          </div>
-          <div style="display:grid;grid-template-columns: repeat(2, 1fr);gap:10px;border-bottom: solid 1px #ccc;margin: 5px 0;">
-            <span><b>Email</b>&nbsp;&nbsp;<?php echo $rw['email'] ?></span>
-            <span><b>Contacts</b>&nbsp;&nbsp;<?php echo $rw['contacts'] ?></span>
-            <span><b>Residence / Address:</b>&nbsp;&nbsp;<?php echo $rw['residance'].', '.$rw['city'] ?></span>
-            <span><b>Gender</b>&nbsp;&nbsp;<?php echo $rw['gender'] ?></span>
-          </div>
-          <div style="display:grid;grid-template-columns: repeat(2, 1fr);gap:10px;border-bottom: solid 1px #ccc;margin: 5px 0;">
-            <span><b>Business Name</b>&nbsp;&nbsp;<?php echo $rw['business_name'] ?></span>
-            <span><b>Branch</b>&nbsp;&nbsp;<?php echo $rw['branch_name'] ?></span>
-          </div>
-          <div style="display:block;margin:5px 0;">
-            <span class="header" style="font-size:18px; color: #fd7e14;">Loan Payment Statement</span>
-          </div>
-        </div>
+      <div style="font-weight: bold;width: 100%;margin: 10px 0;text-align:center;font-size:18px;"><?php echo $rw[0].' '.$rw[1].'<br><span style="font-weight:normal;">'.$rw['data_id'].'</span>'?></div>
+      <div style="width:30%;max-width: 100%;margin:10px auto;text-align:center;">
+        <img src="<?php echo '../data_files/profile/'.$photo_dir ?>" width="100px" height="100px" />
+      </div>
+      <div style="display:grid;grid-template-columns: repeat(4, 1fr);gap:10px;border-bottom: solid 1px #ccc;margin: 5px 0;">
+        <span><b>Email</b>&nbsp;&nbsp;<?php echo $rw['email'] ?></span>
+        <span><b>Contacts</b>&nbsp;&nbsp;<?php echo $rw['contacts'] ?></span>
+        <span><b>Residence / Address:</b>&nbsp;&nbsp;<?php echo $rw['residance'].', '.$rw['city'] ?></span>
+        <span><b>Gender</b><?php echo $rw['gender'] ?></span>
+      </div>
+      <div style="display:grid;grid-template-columns: repeat(4, 1fr);gap:10px;border-bottom: solid 1px #ccc;margin: 5px 0;">
+        <span><b>Business Name</b>&nbsp;&nbsp;<?php echo $rw['business_name'] ?></span>
+        <span><b>Branch</b>&nbsp;&nbsp;<?php echo $rw['branch_name'] ?></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div style="display:block;margin:5px 0;">
+        <span class="header" style="font-size:18px; color: #fd7e14;">Loan Payment Statement</span>
       </div>
       <?php
 
@@ -761,7 +621,7 @@ if($_POST['get_client']){
                     }                    
                   }else{
                     ?>
-                    <div style="display: block;width:100%;height:90px;text-align: center;background-color: #ccc">No Pay Details...</div>
+                    <div style="width:100%;height:90px;text-align: center;background-color: #ccc">No Pay Details...</div>
                   <?php
                   }
                   ?>
@@ -1187,20 +1047,16 @@ if($_POST['detail_staff']){
 }
 
 if($_POST['add_user']){
-  $user = $_POST['add_user'];
 ?>
 <div class="form_header">Add User</div>
 <form name="form1" id="form1" method="post" action="add_user.php">
         <input name="usr_id" type="hidden" value="" id="usr_id" />
-            <?php 
-             if($user=='1'){
-              ?><div class="form-group">
+            <div class="form-group">
                  <div class="label">Staff Name</div>
                 <input type="textbox" name="staff_names" class="text-input" required="required" id="staff_names" autocomplete="off" required="" />
-                <div id="drop-box" class="drop_down drop_large_size" style="width:572px;"></div>
-             </div> 
-             <?php } ?>
-             <input type="hidden" name="staff_id" value="<?php echo $user ?>" id="staff_id">
+                <input type="hidden" name="staff_id" value="" id="staff_id">
+                      <div id="drop-box" class="drop_down drop_large_size" style="width:572px;"></div>
+             </div>
              <div class="form-group">
                 <div class="label">User Name</div>
                 <input type="textbox" name="usr_name" class="text-input" required="required" id="usr" autocomplete="off" required="" /></td>
@@ -1357,8 +1213,9 @@ if($_POST['get_receipt']){
   $loan_id = $_POST['get_receipt'];
   $pay_id = $_POST['pay_id'];
 
-  $sql = mysqli_query($connect,"SELECT CONCAT(c.first_name,' ',c.last_name) as 'client', c.contacts, c.residance, l.date_entry, l.loan_amount, l.interest, p.amount_paid, p.receipt_no, p.pay_date FROM clients c, loan_entries l, loan_payments p WHERE c.id = l.client AND p.loan = l.id AND l.id='$loan_id'");//AND p.id = '$pay_id' ");
+  $sql = mysqli_query($connect,"SELECT CONCAT(c.first_name,' ',c.last_name) as 'client', c.contacts, c.residance, l.date_entry, l.loan_amount, l.interest, p.amount_paid, p.receipt_no, p.pay_date FROM clients c, loan_entries l, loan_payments p WHERE c.id = l.client AND p.loan = l.id AND l.id='$loan_id' AND p.id = '$pay_id' ");
    $r = mysqli_fetch_array($sql);
+
 
   ?>
 <div style="width:95%;margin:auto;">
@@ -1366,7 +1223,7 @@ if($_POST['get_receipt']){
     <div style="display: grid;grid-template-columns: 1fr 2fr 3fr;width: 100%;">
       <div style="background-color: #fd7e14;" id="bg_color"></div>
       <div style="text-align: center;">
-        <span class="top_header">Loani-Ware</span>
+        <span class="top_header">GEP</span>
         <span class="top_header_small">Finance</span>
       </div>
       <div style="background-color: #fd7e14;"></div>

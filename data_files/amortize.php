@@ -1,7 +1,7 @@
 <?php
 require_once("../xsert/connect.php");
 require_once("sys_function.php");
-error_reporting(0);
+
 error_reporting(E_ALL ^ E_NOTICE);
 if(isset($_POST['loan2'])){
 
@@ -19,7 +19,7 @@ if(isset($_POST['loan2'])){
 
   ?>
 <div style="width:95%;margin: auto;">
- <div class="form_header">Amortization Details</div>
+ <div class="form_header">Armortization Details</div>
  <div class="grid-2">
   <span></span>
   <span id="print_rpt" style="display:inline-block;width:100%;text-align: right;"><img src="../img_file/print-icon.svg" width="20" height="20"></span>
@@ -60,7 +60,7 @@ if(isset($_POST['loan2'])){
           </tr>
           <?php
           for($i=0; $i < $period; $i++){
-
+            //pinicpal = loan / period
             $principal = $loan/$period;
             $int_rate=($int_val/100);
             $monthly_rate = round($int_rate/$period,2);
