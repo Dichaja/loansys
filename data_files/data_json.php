@@ -2,7 +2,7 @@
 require_once("../xsert/connect.php");
 require_once("sys_function.php");
 error_reporting(E_NOTICE ^ E_ALL);
-
+error_reporting(0);
 header('Content-Type: application/json');
 
 if(isset($_GET['year'])){

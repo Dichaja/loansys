@@ -4,7 +4,7 @@ error_reporting(E_ALL ^ E_NOTICE);
 require("../xsert/connect.php");
 require_once('../data_files/sys_function.php');
 require_once('../data_files/page_settings.php');
-
+error_reporting(0);
 check_sess(); //check user loggin
 
 ?>
@@ -57,7 +57,7 @@ if($page){
     $start=($page-1)*$limit;
  }else{
     $start=0;
-  }  
+  }   
 
       $q='';
         $q = " SELECT e.exp_ac, e.entry_date, m.name, a.acc_no, e.paid_to FROM expense_items i, expense e, mop m, mop_accounts a WHERE m.id = a.mop AND m.id = e.mop AND i.id=e.expense AND ";
@@ -84,7 +84,7 @@ if($page){
                $q .= " 1 GROUP BY e.exp_ac ORDER BY e.entry_date DESC LIMIT $start,$limit ";
             else
                $q .= " 1 GROUP BY e.exp_ac ORDER BY e.entry_date DESC ";
-            
+              
             //return all rows from search
             $sql_tot = mysqli_query($connect,$qry);
               while($rw_count = mysqli_fetch_array($sql_tot)){

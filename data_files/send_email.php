@@ -4,7 +4,7 @@ session_start();
 error_reporting(E_ALL ^ E_NOTICE);
 require_once('../xsert/connect.php');
 require_once('sys_function.php');
-
+error_reporting(0);
 if($_POST['data_manage']){
 
   $id = $_POST['loan_id'];

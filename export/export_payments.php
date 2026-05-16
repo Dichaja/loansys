@@ -3,7 +3,7 @@ session_start();
 error_reporting(E_ALL ^ E_NOTICE);
 require("../xsert/connect.php");
 require_once('../data_files/sys_function.php');
-
+error_reporting(0);
 //custom function to filter
 function filterData(&$str){
 	 $str = preg_replace("/\t/","\\t", $str);
@@ -21,15 +21,15 @@ $check_date = date('Y-m-d');
 
     if(isset($_GET)){
 
-     $search_date = $_GET['search_date'];
-      if($search_date)
-        $check_date = date('Y-m-d',strtotime($search_date));
+       $search_date = isset($_GET['search_date']) ? $_GET['search_date'] : '';
+        if($search_date)
+          $check_date = date('Y-m-d',strtotime($search_date));
 
-        $branch = $_GET['branch'];
-        $pay_status = $_GET['pay_status'];
-        $search_names = $_GET['mem_names'];
-        $loan_pay_id = $_GET['id'];
-        $loan = $_GET['loan'];
+          $branch = isset($_GET['branch']) ? $_GET['branch'] : '';
+          $pay_status = isset($_GET['pay_status']) ? $_GET['pay_status'] : '';
+          $search_names = isset($_GET['mem_names']) ? $_GET['mem_names'] : '';
+          $loan_pay_id = isset($_GET['id']) ? $_GET['id'] : '';
+          $loan = isset($_GET['loan']) ? $_GET['loan'] : '';
 
       if($loan_pay_id){
          $s = mysqli_query($connect,"SELECT c.id, CONCAT(c.first_name,' ', c.last_name) as 'client_name' FROM clients c, loan_entries l, loan_payments p WHERE c.id = l.client AND l.id = p.loan AND p.id='$loan_pay_id' ");

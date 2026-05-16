@@ -1,7 +1,7 @@
 <?php
 
 session_start();
-
+error_reporting(0);
 require_once("../xsert/connect.php");
 error_reporting(E_NOTICE ^ E_ALL);
 

@@ -1,6 +1,6 @@
 <?php
 session_start();
-    
+error_reporting(0); 
 if(isset($_SESSION['user_type']) && isset($_SESSION['sess_user'])) {
 	
    $old_user = $_SESSION['sess_user'];

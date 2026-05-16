@@ -3,7 +3,7 @@ session_start();
 error_reporting(E_ALL ^ E_NOTICE);
 require_once('../xsert/connect.php');
 //custom function to filter
-
+error_reporting(0);
 function filterData(&$str){
 	 $str = preg_replace("/\t/","\\t", $str);
 	 $str = preg_replace("/\r?\n/", "\\n", $str);

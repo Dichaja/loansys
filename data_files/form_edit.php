@@ -2,6 +2,7 @@
 error_reporting(E_ALL ^ E_NOTICE);
 require_once('../xsert/connect.php');
 require_once('../data_files/sys_function.php');
+error_reporting(0);
 
 if($_POST['edit_loan_payment']){
   
@@ -465,7 +466,7 @@ if($_POST['edit_loan']){
           <div class="label">Period Category</div>
            <select name="duration" class="text-input" id="duration">
             <?php
-              $array_period = array('day','month','year');
+              $array_period = array('day','week','month','year');
                foreach ($array_period as $key => $value) {
                	   if($r['duration']==$value)
                	   	echo '<option value="'.$value.'" selected="selected">'.ucfirst($value).'</option>';
